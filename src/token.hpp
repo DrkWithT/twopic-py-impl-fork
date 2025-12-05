@@ -26,7 +26,7 @@ namespace Token {
         KEYWORD_WHILE, KEYWORD_WITH,
         KEYWORD_YIELD,
 
-        IDENTIFIER,
+        VARIABLE,
         INTEGER_LITERAL,
         FLOAT_LITERAL,
         STRING_LITERAL,

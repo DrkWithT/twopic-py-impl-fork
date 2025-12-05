@@ -67,8 +67,24 @@ bool Lexical::lexical_class::is_float() {
         return false;
     }
 
-    char c = source[position];
-    return c == '.';
+    size_t temp_pos = position;
+    while (temp_pos < source.length() && std::isdigit(source[temp_pos])) {
+        temp_pos++;
+    }
+
+    if (temp_pos < source.length() && source[temp_pos] == '.') {
+        if (temp_pos + 1 < source.length() && std::isdigit(source[temp_pos + 1])) {
+            return true; 
+        }
+    }
+
+    if (source[position] == '.') {
+        if (position + 1 < source.length() && std::isdigit(source[position + 1])) {
+            return true; 
+        }
+    }
+
+    return false;
 }
 
 bool Lexical::lexical_class::is_integer() {
@@ -122,37 +138,13 @@ std::vector<Token::token_class> Lexical::lexical_class::tokenize() {
             continue;
         }
 
-        // Handle comments
-        if (source[position] == '#') {
-            size_t start = position;
-            while (position < source.length() && source[position] != '\n') {
-                next_token();
-            }
-            std::string comment(source.substr(start, position - start));
-            tokens.push_back({Token::token_type::COMMENT, comment, start_line, start_column});
-            continue;
-        }
-
-        if (is_integer()) {
-            size_t start = position;
-            while (position < source.length() && std::isdigit(source[position])) {
-                next_token();
-            }
-
-            std::string num(source.substr(start, position - start));
-            tokens.push_back({Token::token_type::INTEGER_LITERAL, num, start_line, start_column});
-            continue;
-        }
-
         if (is_float()) {
             size_t start = position;
 
-            if (std::isdigit(source[position])) {
-                while (position < source.length() && std::isdigit(source[position])) {
-                    next_token();
-                }
+            while (position < source.length() && std::isdigit(source[position])) {
+                next_token();
             }
-
+            
             if (position < source.length() && source[position] == '.') {
                 next_token();
             }
@@ -165,6 +157,17 @@ std::vector<Token::token_class> Lexical::lexical_class::tokenize() {
             tokens.push_back({Token::token_type::FLOAT_LITERAL, num, start_line, start_column});
             continue;
         }        
+
+        if (is_integer()) {
+            size_t start = position;
+            while (position < source.length() && std::isdigit(source[position])) {
+                next_token();
+            }
+
+            std::string num(source.substr(start, position - start));
+            tokens.push_back({Token::token_type::INTEGER_LITERAL, num, start_line, start_column});
+            continue;
+        }
 
         if (is_string()) {
             char quote = source[position];
@@ -204,7 +207,7 @@ std::vector<Token::token_class> Lexical::lexical_class::tokenize() {
             if (it != keyword.end()) {
                 tokens.push_back({it->second, identifier, start_line, start_column});
             } else {
-                tokens.push_back({Token::token_type::IDENTIFIER, identifier, start_line, start_column});
+                tokens.push_back({Token::token_type::VARIABLE, identifier, start_line, start_column});
             }
             continue;
         }
@@ -412,7 +415,7 @@ std::string Lexical::lexical_class::token_type_name(Token::token_class token) {
         case Token::token_type::KEYWORD_WHILE: return "KEYWORD_WHILE";
         case Token::token_type::KEYWORD_WITH: return "KEYWORD_WITH";
         case Token::token_type::KEYWORD_YIELD: return "KEYWORD_YIELD";
-        case Token::token_type::IDENTIFIER: return "IDENTIFIER";
+        case Token::token_type::VARIABLE: return "VARIABLE";
         case Token::token_type::INTEGER_LITERAL: return "INTEGER_LITERAL";
         case Token::token_type::FLOAT_LITERAL: return "FLOAT_LITERAL";
         case Token::token_type::STRING_LITERAL: return "STRING_LITERAL";
