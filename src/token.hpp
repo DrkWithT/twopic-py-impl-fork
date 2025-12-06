@@ -27,10 +27,14 @@ namespace Token {
         KEYWORD_YIELD,
 
         VARIABLE,
+        FUNCTION_NAME,
         INTEGER_LITERAL,
         FLOAT_LITERAL,
         STRING_LITERAL,
         BYTES_LITERAL,
+
+        ARRAY,
+        DICTIONARY,
 
         PLUS,           // +
         MINUS,          // -
@@ -77,7 +81,6 @@ namespace Token {
         ARROW,          // ->
         ELLIPSIS,       // ...
 
-        // Special Tokens
         NEWLINE,
         INDENT,
         DEDENT,

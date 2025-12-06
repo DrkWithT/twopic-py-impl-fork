@@ -3,7 +3,7 @@
 #include <stdexcept>
 
 Lexical::lexical_class::lexical_class(std::string_view source)
-    : position(1), source(source), line(1), column(0)
+    : position(0), source(source), line(1), column(0)
 {
     keyword = {
         {"if", Token::token_type::KEYWORD_IF},
@@ -87,6 +87,12 @@ bool Lexical::lexical_class::is_float() {
     return false;
 }
 
+bool is_operator() {
+
+}
+
+bool is_function() {}
+
 bool Lexical::lexical_class::is_integer() {
     if (position >= source.length()) {
         return false;
@@ -112,7 +118,6 @@ void Lexical::lexical_class::next_token() {
     if (position < source.length()) {
         if (source[position] == '\n') {
             line++;
-            column = 1;
         } else {
             column++;
         }
@@ -194,6 +199,14 @@ std::vector<Token::token_class> Lexical::lexical_class::tokenize() {
             continue;
         }
 
+        if (is_operator) {
+
+        }
+
+        if (is_function) {
+
+        }
+
         if (is_varaible()) {
             size_t start = position;
 
@@ -211,8 +224,6 @@ std::vector<Token::token_class> Lexical::lexical_class::tokenize() {
             }
             continue;
         }
-
-        char current = source[position];
 
         if (position + 2 < source.length()) {
             std::string three_char = std::string(source.substr(position, 3));
@@ -338,6 +349,7 @@ std::vector<Token::token_class> Lexical::lexical_class::tokenize() {
         Token::token_type type;
         bool matched = true;
 
+        char current = source[position];
         switch (current) {
             case '+': type = Token::token_type::PLUS; break;
             case '-': type = Token::token_type::MINUS; break;
