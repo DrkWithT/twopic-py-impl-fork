@@ -31,6 +31,7 @@ namespace Lexical {
             bool is_integer();
             bool is_whitespace();
             bool is_varaible();
+            bool is_function();
 
         public:
             lexical_class(std::string_view source);

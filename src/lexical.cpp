@@ -40,7 +40,9 @@ Lexical::lexical_class::lexical_class(std::string_view source)
         {"nonlocal", Token::token_type::KEYWORD_NONLOCAL},
         {"raise", Token::token_type::KEYWORD_RAISE},
         {"async", Token::token_type::KEYWORD_ASYNC},
-        {"await", Token::token_type::KEYWORD_AWAIT}
+        {"await", Token::token_type::KEYWORD_AWAIT},
+        {"match", Token::token_type::KEYWORD_MATCH},
+        {"case", Token::token_type::KEYWORD_CASE},
     };
 }
 
@@ -87,12 +89,6 @@ bool Lexical::lexical_class::is_float() {
     return false;
 }
 
-bool is_operator() {
-
-}
-
-bool is_function() {}
-
 bool Lexical::lexical_class::is_integer() {
     if (position >= source.length()) {
         return false;
@@ -123,6 +119,29 @@ void Lexical::lexical_class::next_token() {
         }
         position++;
     }
+}
+
+bool Lexical::lexical_class::is_function() {
+    if (position >= source.length()) {
+        return false;
+    }
+
+    if (!std::isalpha(source[position]) && source[position] != '_') {
+        return false;
+    }
+
+    size_t temp_pos = position;
+    while (temp_pos < source.length() && 
+    (std::isalnum(source[temp_pos]) || source[temp_pos] == '_')) {
+        temp_pos++;
+    }
+
+    while (temp_pos < source.length() &&
+           (source[temp_pos] == ' ' || source[temp_pos] == '\t')) {
+        temp_pos++;
+    }
+
+    return temp_pos < source.length() && source[temp_pos] == '(';
 }
 
 std::vector<Token::token_class> Lexical::lexical_class::tokenize() {
@@ -199,12 +218,22 @@ std::vector<Token::token_class> Lexical::lexical_class::tokenize() {
             continue;
         }
 
-        if (is_operator) {
+        if(is_function()) {
+            size_t start = position;
 
-        }
+            while (position < source.length() && (std::isalnum(source[position]) || source[position] == '_')) {
+                next_token();
+            }
 
-        if (is_function) {
+            std::string identifier(source.substr(start, position - start));
 
+            auto it = keyword.find(identifier);
+            if (it == keyword.end()) {
+                tokens.push_back({Token::token_type::FUNCTION_NAME, identifier, start_line, start_column});
+            } else {
+                tokens.push_back({it->second, identifier, start_line, start_column});
+            }
+            continue;
         }
 
         if (is_varaible()) {
@@ -217,10 +246,10 @@ std::vector<Token::token_class> Lexical::lexical_class::tokenize() {
             std::string identifier(source.substr(start, position - start));
 
             auto it = keyword.find(identifier);
-            if (it != keyword.end()) {
-                tokens.push_back({it->second, identifier, start_line, start_column});
-            } else {
+            if (it == keyword.end()) {
                 tokens.push_back({Token::token_type::VARIABLE, identifier, start_line, start_column});
+            } else {
+                tokens.push_back({it->second, identifier, start_line, start_column});
             }
             continue;
         }
@@ -397,6 +426,8 @@ std::string Lexical::lexical_class::token_type_name(Token::token_class token) {
         case Token::token_type::KEYWORD_TRUE: return "KEYWORD_TRUE";
         case Token::token_type::KEYWORD_AND: return "KEYWORD_AND";
         case Token::token_type::KEYWORD_AS: return "KEYWORD_AS";
+        case Token::token_type::KEYWORD_CASE: return "KEYWORD_CASE";
+        case Token::token_type::KEYWORD_MATCH: return "KEYWORD_MATCH";
         case Token::token_type::KEYWORD_ASSERT: return "KEYWORD_ASSERT";
         case Token::token_type::KEYWORD_ASYNC: return "KEYWORD_ASYNC";
         case Token::token_type::KEYWORD_AWAIT: return "KEYWORD_AWAIT";
@@ -428,6 +459,7 @@ std::string Lexical::lexical_class::token_type_name(Token::token_class token) {
         case Token::token_type::KEYWORD_WITH: return "KEYWORD_WITH";
         case Token::token_type::KEYWORD_YIELD: return "KEYWORD_YIELD";
         case Token::token_type::VARIABLE: return "VARIABLE";
+        case Token::token_type::FUNCTION_NAME: return "FUNCTION_NAME";
         case Token::token_type::INTEGER_LITERAL: return "INTEGER_LITERAL";
         case Token::token_type::FLOAT_LITERAL: return "FLOAT_LITERAL";
         case Token::token_type::STRING_LITERAL: return "STRING_LITERAL";

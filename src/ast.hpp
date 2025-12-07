@@ -9,9 +9,10 @@ namespace Ast {
             template<typename T>
             struct node {
                 T data;
-                    std::unique_ptr<node> left;
-                    std::unique_ptr<node> right;
+                std::unique_ptr<node> left;
+                std::unique_ptr<node> right;
             };
+        public:
     };
 }
 
