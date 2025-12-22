@@ -1,3 +1,4 @@
 /.vscode/
 /build/
 lexical_analyzer
+*.py
