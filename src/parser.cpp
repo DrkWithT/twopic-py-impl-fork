@@ -54,17 +54,17 @@ bool Parser::parser_class::is_at_end() {
 std::unique_ptr<Ast::ast_node> Parser::parser_class::parse() {
     auto root = std::make_unique<Ast::ast_node>(Ast::node_type::PROGRAM);
 
-   try {
+   //try {
         while (!is_at_end()) {
             auto stmt = parse_statement();
             if (stmt) {
                 root->add_child(std::move(stmt));
             }
         }
-    } catch (const std::exception& e) {
-        std::cerr << "Parse error: " << e.what() << std::endl;
-        throw;
-    }
+    //} catch (const std::exception& e) {
+     //   std::cerr << "Parse error: " << e.what() << std::endl;
+    // throw;
+    //}
 
     ast_tree.set_root(std::move(root));
 
@@ -164,7 +164,6 @@ std::unique_ptr<Ast::ast_node> Parser::parser_class::parse_expression() {
 
     return node;
 }
-
 
 std::unique_ptr<Ast::ast_node> Parser::parser_class::parse_operator() {
     auto left = parse_expression();
@@ -586,3 +585,4 @@ std::unique_ptr<Ast::ast_node> Parser::parser_class::parse_case() {
 
     return case_node;
 }
+
