@@ -62,7 +62,7 @@ std::unique_ptr<Ast::ast_node> Parser::parser_class::parse() {
             }
         }
     //} catch (const std::exception& e) {
-     //   std::cerr << "Parse error: " << e.what() << std::endl;
+    //   std::cerr << "Parse error: " << e.what() << std::endl;
     // throw;
     //}
 
@@ -131,19 +131,49 @@ std::unique_ptr<Ast::ast_node> Parser::parser_class::parse_expression() {
             break;
         }
 
-        case Token::token_type::LPAREN: {
-            consume(Token::token_type::LPAREN);
-            auto expr = parse_operator();
-            consume(Token::token_type::RPAREN);
-            return expr;
+        case Token::token_type::LBRACKET: {
+            return parse_list();
         }
+        
+        case Token::token_type::LPAREN: {
+            auto call_node = std::make_unique<Ast::ast_node>(Ast::node_type::CALL_EXPR,
+                                                          "",
+                                                          current_token().line,
+                                                            current_token().column);
+            consume(Token::token_type::LPAREN);
+
+            call_node->add_child(std::move(node));
+
+            auto arg_list = std::make_unique<Ast::ast_node>(Ast::node_type::ARGUMENT_LIST,
+                                                            "",
+                                                            current_token().line,
+                                                            current_token().column);
+
+            if (!match(Token::token_type::RPAREN)) {
+                arg_list->add_child(parse_operator());
+
+                while (match(Token::token_type::COMMA)) {
+                    consume(Token::token_type::COMMA);
+
+                    if (match(Token::token_type::RPAREN)) {
+                        break;
+                    }
+
+                    arg_list->add_child(parse_operator());
+                }
+            }
+
+            consume(Token::token_type::RPAREN);
+            call_node->add_child(std::move(arg_list));
+            node = std::move(call_node);
+        }
+
 
         default:
             throw std::runtime_error("Unexpected token: " + current_token().value +
                                    " at line " + std::to_string(current_token().line));
     }
 
-    // Handle attribute access (e.g., self.x, obj.method)
     while (match(Token::token_type::DOT)) {
         consume(Token::token_type::DOT);
 
@@ -395,8 +425,7 @@ std::unique_ptr<Ast::ast_node> Parser::parser_class::parse_if_stmt() {
 
     if_node->add_child(parse_expression());
 
-   consume_newline();
-
+    consume_newline();
     auto if_body = std::make_unique<Ast::ast_node>(Ast::node_type::BLOCK,
                                                     "",
                                                     current_token().line,
@@ -586,3 +615,32 @@ std::unique_ptr<Ast::ast_node> Parser::parser_class::parse_case() {
     return case_node;
 }
 
+std::unique_ptr<Ast::ast_node> Parser::parser_class::parse_list() {
+    auto list_node = std::make_unique<Ast::ast_node>(Ast::node_type::LIST,
+                                                    "",
+                                                current_token().line,
+                                                current_token().column);
+
+    consume(Token::token_type::LBRACKET);
+
+    if (match(Token::token_type::RBRACKET)) {
+        consume(Token::token_type::RBRACKET);
+        return list_node;
+    }
+
+    list_node->add_child(parse_expression());
+
+    while (match(Token::token_type::COMMA)) {
+        consume(Token::token_type::COMMA);
+
+        if (match(Token::token_type::RBRACKET)) {
+            break;
+        }
+
+        list_node->add_child(parse_expression());
+    }
+
+    consume(Token::token_type::RBRACKET);
+    return list_node;
+}
+ 

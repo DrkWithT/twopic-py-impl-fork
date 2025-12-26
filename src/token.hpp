@@ -30,6 +30,8 @@ namespace Token {
         KEYWORD_SELF,
         KEYWORD_INIT,
 
+        LIST,
+
         IDENTIFIER,
         INTEGER_LITERAL,
         FLOAT_LITERAL,

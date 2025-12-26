@@ -130,6 +130,7 @@ void Lexical::lexical_class::next_token() {
     if (position < source.length()) {
         if (source[position] == '\n') {
             line++;
+            column = 0;
         } else {
             column++;
         }
@@ -378,7 +379,7 @@ std::vector<Token::token_class> Lexical::lexical_class::tokenize() {
                 matched = false;
                 break;
         }
-
+        
         if (matched) {
             tokens.push_back({type, std::string(1, current), start_line, start_column});
             next_token();
