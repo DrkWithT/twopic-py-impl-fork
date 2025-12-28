@@ -2,7 +2,6 @@
 #define TOKEN_HPP 
 
 #include <string>
-#include <unordered_map>
 
 /* The token determines what type a certain phrase or word is going to be for a character*/
 

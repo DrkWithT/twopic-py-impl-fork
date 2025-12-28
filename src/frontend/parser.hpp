@@ -14,20 +14,25 @@ namespace Parser {
     class parser_class {
         private:
             std::vector<Token::token_class> tokens;
-            size_t current_pos;
+            std::size_t current_pos;
+            std::size_t error_count;
             Ast::ast_class ast_tree;
 
             Token::token_class& current_token();
             Token::token_class& previous_token();
 
-            bool match(const Token::token_type& type);
+            [[nodiscard]] bool match(const Token::token_type& type);
 
             /* 
             Consume advances the token when match returns true and 
             allows for more error handling 
             */
             bool consume(const Token::token_type& type);
-            bool is_at_end();            
+            [[nodiscard]] bool is_at_end();
+
+            [[noreturn]] void report_error(int bad_token_pos, std::string_view message);
+
+            void recover_parse();
 
              // Something that produces a value 
             std::unique_ptr<Ast::ast_node> parse_expression();

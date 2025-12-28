@@ -1,6 +1,7 @@
-#include <iostream>
-#include <stdexcept>
+#include <string_view>
 #include <format>
+#include <stdexcept>
+#include <iostream>
 
 #include "frontend/parser.hpp"
 
@@ -22,10 +23,9 @@ parse_if_stmt()        - If statements
 
 */
 
-Parser::parser_class::parser_class(Lexical::lexical_class& lexer) : current_pos(0) {
+Parser::parser_class::parser_class(Lexical::lexical_class& lexer)
+: current_pos {0}, error_count {0}, ast_tree {} {
     tokens = lexer.tokenize();
-
-    std::cerr << "Parser constructor called" << std::endl;
 }
 
 bool Parser::parser_class::consume(const Token::token_type& type) {
@@ -57,20 +57,40 @@ bool Parser::parser_class::is_at_end() {
     return current_pos >= tokens.size() || current_token().type == Token::token_type::EOF_TOKEN;
 }
 
+void Parser::parser_class::report_error(int bad_token_pos, std::string_view message) {
+    ++error_count;
+
+    const auto& pre_culprit_token = tokens.at(bad_token_pos - 1);
+    const auto& culprit_token = tokens.at(bad_token_pos);
+
+    throw std::runtime_error {std::format("Syntax Error #{}:\n\tnote: {}\n\narea of source:{}:{}\n\n\x1b[1;31m{}\x1b[0m{}...", error_count, message, culprit_token.line, culprit_token.column, pre_culprit_token.value, culprit_token.value)};
+}
+
+void Parser::parser_class::recover_parse() {
+    while (!match(Token::token_type::EOF_TOKEN)) {
+        if (match(Token::token_type::KEYWORD_DEF) || match(Token::token_type::KEYWORD_CLASS)) {
+            break;
+        }
+
+        ++current_pos;
+    }
+}
+
 std::unique_ptr<Ast::ast_node> Parser::parser_class::parse() {
     auto root = std::make_unique<Ast::ast_node>(Ast::node_type::PROGRAM);
 
-   //try {
-        while (!is_at_end()) {
+    while (!is_at_end()) {
+        try {
             auto stmt = parse_statement();
             if (stmt) {
                 root->add_child(std::move(stmt));
             }
+        } catch (const std::exception& e) {
+            std::cerr << e.what() << '\n';
+            recover_parse();
+            continue;
         }
-    //} catch (const std::exception& e) {
-    //   std::cerr << "Parse error: " << e.what() << std::endl;
-    // throw;
-    //}
+    }
 
     ast_tree.set_root(std::move(root));
 
@@ -81,7 +101,7 @@ void Parser::parser_class::consume_newline() {
     consume(Token::token_type::COLON);
     consume(Token::token_type::NEWLINE);
     if (!match(Token::token_type::INDENT)) {
-        throw std::runtime_error("Expected indentation after ':' at line " + std::to_string(current_token().line));
+        report_error(current_pos, "Expected indent after ':'");
     }
     consume(Token::token_type::INDENT);
 }
@@ -90,7 +110,7 @@ void Parser::parser_class::consume_newline() {
 void Parser::parser_class::consume_line() {
    consume(Token::token_type::NEWLINE);
     if (!match(Token::token_type::INDENT)) {
-        throw std::runtime_error("Expected indentation at line " + std::to_string(current_token().line));
+        report_error(current_pos, "Expected indentation here.");
     }
    consume(Token::token_type::INDENT);
 }
@@ -183,18 +203,15 @@ std::unique_ptr<Ast::ast_node> Parser::parser_class::parse_expression() {
             
             break;
         }
-
         default:
-            throw std::runtime_error("Unexpected token: " + current_token().value +
-                                   " at line " + std::to_string(current_token().line));
+            report_error(current_pos, "Unexpected token in expression.");
     }
 
     while (match(Token::token_type::DOT)) {
         consume(Token::token_type::DOT);
 
         if (!match(Token::token_type::IDENTIFIER)) {
-            throw std::runtime_error("Expected identifier after '.' at line " +
-                                   std::to_string(current_token().line));
+            report_error(current_pos, "Expected identifier at this member access.");
         }
 
         auto attr_node = std::make_unique<Ast::ast_node>(Ast::node_type::ATTRIBUTE_EXPR,
@@ -325,8 +342,7 @@ std::unique_ptr<Ast::ast_node> Parser::parser_class::parse_function_def() {
     consume(Token::token_type::KEYWORD_DEF);
 
     if (!match(Token::token_type::IDENTIFIER)) {
-        throw std::runtime_error("Expected function name at line " +
-                               std::to_string(current_token().line));
+        report_error(current_pos, "Expected function name before parameter list and body.");
     }
 
     auto func_node = std::make_unique<Ast::ast_node>(Ast::node_type::FUNCTION_DEF,
@@ -342,7 +358,7 @@ std::unique_ptr<Ast::ast_node> Parser::parser_class::parse_function_def() {
 
     consume(Token::token_type::LPAREN);    
     if (!match(Token::token_type::INDENT)) {
-        throw std::runtime_error(std::format("There is no Indent at source:{}", current_token().line));
+        report_error(current_pos, "Missing indent here.");
     }
 
     auto param_list = std::make_unique<Ast::ast_node>(Ast::node_type::PARAMETER_LIST,
