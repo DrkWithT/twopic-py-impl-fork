@@ -35,6 +35,10 @@ bool Parser::parser_class::consume(const Token::token_type& type) {
     return false;
 }
 
+Token::token_class& Parser::parser_class::previous_token() {
+    return tokens[--current_pos];
+}
+
 Token::token_class& Parser::parser_class::current_token() {
     return tokens[current_pos];
 }
@@ -74,12 +78,19 @@ std::unique_ptr<Ast::ast_node> Parser::parser_class::parse() {
 void Parser::parser_class::consume_newline() {
     consume(Token::token_type::COLON);
     consume(Token::token_type::NEWLINE);
+    if (!match(Token::token_type::INDENT)) {
+        throw std::runtime_error("Expected indentation after ':' at line " + std::to_string(current_token().line));
+    }
     consume(Token::token_type::INDENT);
 }
 
+
 void Parser::parser_class::consume_line() {
    consume(Token::token_type::NEWLINE);
-   consume(Token::token_type::INDENT); 
+    if (!match(Token::token_type::INDENT)) {
+        throw std::runtime_error("Expected indentation at line " + std::to_string(current_token().line));
+    }
+   consume(Token::token_type::INDENT);
 }
 
 std::unique_ptr<Ast::ast_node> Parser::parser_class::parse_expression() {
@@ -328,9 +339,7 @@ std::unique_ptr<Ast::ast_node> Parser::parser_class::parse_function_def() {
     }
 
     consume(Token::token_type::LPAREN);
-    if (!match(Token::token_type::INDENT)) {
-        throw std::runtime_error("There is no Indent" + std::to_string(current_token().line));
-    }
+    
 
     auto param_list = std::make_unique<Ast::ast_node>(Ast::node_type::PARAMETER_LIST,
                                                        "",
@@ -379,7 +388,6 @@ std::unique_ptr<Ast::ast_node> Parser::parser_class::parse_function_def() {
                                                  current_token().column);
     
     consume_line();
-
     while (!match(Token::token_type::DEDENT) && !is_at_end()) {
         auto stmt = parse_statement();
         if (stmt) {

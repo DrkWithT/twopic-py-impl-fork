@@ -9,6 +9,8 @@
 Lexical::lexical_class::lexical_class(std::string_view source)
     : position(0), source(source), line(1), column(0)
 {
+    indent.push_back(0);  
+
     keyword = {
         {"if", Token::token_type::KEYWORD_IF},
         {"else", Token::token_type::KEYWORD_ELSE},
@@ -61,6 +63,37 @@ std::string Lexical::read_file(std::string_view filename) {
     return buffer.str();
 }
 
+void Lexical::lexical_class::handle_indentation(std::vector<Token::token_class>& tokens, size_t start_line) {
+    size_t spaces = 0;
+    while (position < source.length() && (source[position] == ' ' || source[position] == '\t')) {
+        if (source[position] == '\t') {
+            spaces += 4;  
+        } else {
+            spaces++;
+        }
+        next_token();
+    }
+
+    if (position >= source.length() || source[position] == '\n') {
+        return;
+    }
+
+    size_t current_indent = indent.back();
+
+    if (spaces > current_indent) {
+        indent.push_back(spaces);
+        tokens.push_back({Token::token_type::INDENT, "", start_line, spaces});
+    } else if (spaces < current_indent) {
+        while (!indent.empty() && indent.back() > spaces) {
+            indent.pop_back();
+            tokens.push_back({Token::token_type::DEDENT, "", start_line, spaces});
+        }
+
+        if (indent.empty() || indent.back() != spaces) {
+            throw std::runtime_error("Indentation error at line " + std::to_string(line));
+        }
+    }
+}
 
 bool Lexical::lexical_class::is_whitespace() {
     if (position >= source.length()) {
@@ -68,7 +101,7 @@ bool Lexical::lexical_class::is_whitespace() {
     }
 
     char c = source[position];
-    return c == ' ' || c == '\t' || c == '\r';
+    return c == ' ' || c == '\t'|| c == '\r';
 }
 
 bool Lexical::lexical_class::is_string() {
@@ -141,9 +174,17 @@ void Lexical::lexical_class::next_token() {
 std::vector<Token::token_class> Lexical::lexical_class::tokenize() {
     std::vector<Token::token_class> tokens;
 
+    bool at_line_start = true;  
+
     while (position < source.length()) {
         size_t start_line = line;
         size_t start_column = column;
+
+        if (at_line_start && source[position] != '\n') {
+            handle_indentation(tokens, start_line);
+            at_line_start = false;
+            continue;
+        }
 
         if (is_whitespace()) {
             next_token();
@@ -153,6 +194,7 @@ std::vector<Token::token_class> Lexical::lexical_class::tokenize() {
         if (source[position] == '\n') {
             tokens.push_back({Token::token_type::NEWLINE, "\n", start_line, start_column});
             next_token();
+            at_line_start = true;  
             continue;
         }
 
@@ -388,6 +430,12 @@ std::vector<Token::token_class> Lexical::lexical_class::tokenize() {
 
         tokens.push_back({Token::token_type::DEFAULT, std::string(1, current), start_line, start_column});
         next_token();
+    }
+
+    // Emit DEDENT tokens for all remaining indentation levels at EOF
+    while (indent.size() > 1) {
+        indent.pop_back();
+        tokens.push_back({Token::token_type::DEDENT, "", line, column});
     }
 
     tokens.push_back({Token::token_type::EOF_TOKEN, "", line, column});

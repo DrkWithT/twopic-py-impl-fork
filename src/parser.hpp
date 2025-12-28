@@ -18,9 +18,7 @@ namespace Parser {
             Ast::ast_class ast_tree;
 
             Token::token_class& current_token();
-            /* 
             Token::token_class& previous_token();
-            */
 
             bool match(const Token::token_type& type);
 

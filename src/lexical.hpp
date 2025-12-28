@@ -25,8 +25,10 @@ namespace Lexical {
             size_t column;
 
             std::unordered_map<std::string, Token::token_type> keyword;
+            std::vector<size_t> indent;
 
             void next_token();
+            void handle_indentation(std::vector<Token::token_class>& tokens, size_t start_line);
 
             bool is_string();
             bool is_float();

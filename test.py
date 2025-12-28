@@ -3,6 +3,11 @@ def greet(name):
     print(message)
     return message
 
+def hello():
+    def hello2():
+        print("hello")
+    print("hello")
+
 c = 1
 c += 1
 
