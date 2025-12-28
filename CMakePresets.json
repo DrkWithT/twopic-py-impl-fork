@@ -71,6 +71,37 @@
                 "LLVM_LIBRARY_DIR": "/usr/local/opt/llvm/lib/",
                 "CMAKE_RUNTIME_OUTPUT_DIRECTORY": "${sourceDir}/build/"
             }
+        },
+        {
+            "name": "gcc-debug-build",
+            "generator": "Ninja",
+            "cacheVariables": {
+                "CMAKE_C_COMPILER": "gcc",
+                "CMAKE_CXX_COMPILER": "g++",
+                "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
+                "CMAKE_CXX_STANDARD": "23",
+                "CMAKE_CXX_EXTENSIONS": "OFF",
+                "CMAKE_BUILD_TYPE": "Debug",
+                "CMAKE_COMPILE_WARNING_AS_ERROR": "ON",
+                "PROJECT_SRC_DIR": "${sourceDir}/src/",
+                "CMAKE_RUNTIME_OUTPUT_DIRECTORY": "${sourceDir}/build/"
+            }
+        },
+        {
+            "name": "gcc-profile-build",
+            "generator": "Ninja",
+            "cacheVariables": {
+                "CMAKE_C_COMPILER": "gcc",
+                "CMAKE_CXX_COMPILER": "g++",
+                "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
+                "CMAKE_CXX_STANDARD": "23",
+                "CMAKE_CXX_EXTENSIONS": "OFF",
+                "CMAKE_BUILD_TYPE": "RelWithDebInfo",
+                "CMAKE_COMPILE_WARNING_AS_ERROR": "ON",
+                "SANITIZER_FLAGS": "-fsanitize=address -fsanitize=undefined -fno-omit-frame-pointer",
+                "PROJECT_SRC_DIR": "${sourceDir}/src/",
+                "CMAKE_RUNTIME_OUTPUT_DIRECTORY": "${sourceDir}/build/"
+            }
         }
     ]
 }
