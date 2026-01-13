@@ -78,13 +78,9 @@ namespace Ast {
     };
 
     struct ast_node {
-        node_type type;
-        Token::token_class token_m;
-        std::vector<std::unique_ptr<ast_node>> children_m;
-
-        /* todo: might used aggregate init rather than a constructor */
-        ast_node(node_type t, const std::string& val = "", std::size_t position = 0, size_t col = 0)
-            : type(t), token_m{Token::token_type::DEFAULT, val, position, col} {}
+        node_type type {};
+        Token::token_class token_m{Token::token_type::DEFAULT, "", 0, 0};
+        std::vector<std::unique_ptr<ast_node>> children_m {};
 
         void add_child(std::unique_ptr<ast_node> child) {
             children_m.push_back(std::move(child));
