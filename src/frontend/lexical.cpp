@@ -6,7 +6,7 @@
 
 #include "frontend/lexical.hpp"
 
-Lexical::lexical_class::lexical_class(std::string_view source) : position(0), source(source), line(1), column(0) {
+Lexical::lexical_class::lexical_class(std::string_view source) : position(0), source(source), line(1), column(1) {
     indent.push_back(0);  
 
     keyword = {

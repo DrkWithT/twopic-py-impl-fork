@@ -18,6 +18,8 @@ void print_ast(const Ast::ast_node* node, int indent = 0) {
     std::cout << "Node: ";
     switch (node->type) {
         case Ast::node_type::PROGRAM: std::cout << "PROGRAM"; break;
+        case Ast::node_type::TRY_STMT: std::cout << "TRY_STMT"; break;
+        case Ast::node_type::EXCEPT_STMT: std::cout << "EXCEPT_STMT"; break;
         case Ast::node_type::FUNCTION_DEF: std::cout << "FUNCTION_DEF"; break;
         case Ast::node_type::CLASS_DEF: std::cout << "CLASS_DEF"; break;
         case Ast::node_type::IF_STMT: std::cout << "IF_STMT"; break;

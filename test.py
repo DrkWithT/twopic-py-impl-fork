@@ -36,3 +36,18 @@ wrld = new_world("world")
 x = 42
 y = 3.14
 greet("World")
+
+try:
+  print("Hello")
+except:
+  print("Something went wrong")
+else:
+    print("else")
+
+try:
+  print(x)
+except:
+  print("Something went wrong")
+finally:
+  print("The 'try except' is finished")
+    

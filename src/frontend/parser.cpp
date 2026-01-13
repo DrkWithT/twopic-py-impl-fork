@@ -145,15 +145,41 @@ std::unique_ptr<Ast::ast_node> Parser::parser_class::parse_expression() {
         }
 
         case Token::token_type::LBRACKET: {
-            return parse_list();
+            node = parse_list();
             break;
         }
-        
-        case Token::token_type::LPAREN: {
+
+        default:
+            throw std::runtime_error("Unexpected token: " + current_token().value +
+                                   " at line " + std::to_string(current_token().line));
+    }
+
+    return parse_misc_expression(std::move(node));
+}
+
+std::unique_ptr<Ast::ast_node> Parser::parser_class::parse_misc_expression(std::unique_ptr<Ast::ast_node> node) {
+    while (match(Token::token_type::DOT) || match(Token::token_type::LPAREN)) {
+        if (match(Token::token_type::DOT)) {
+            consume(Token::token_type::DOT);
+
+            if (!match(Token::token_type::IDENTIFIER)) {
+                throw std::runtime_error("Expected identifier after '.' at line " +
+                                       std::to_string(current_token().line));
+            }
+
+            auto attr_node = std::make_unique<Ast::ast_node>(Ast::node_type::ATTRIBUTE_EXPR,
+                                                              current_token().value,
+                                                              current_token().line,
+                                                              current_token().column);
+            consume(Token::token_type::IDENTIFIER);
+
+            attr_node->add_child(std::move(node));
+            node = std::move(attr_node);
+        } else if (match(Token::token_type::LPAREN)) {
             auto call_node = std::make_unique<Ast::ast_node>(Ast::node_type::CALL_EXPR,
-                                                          "",
-                                                          current_token().line,
-                                                            current_token().column);
+                                                              "",
+                                                              current_token().line,
+                                                              current_token().column);
             consume(Token::token_type::LPAREN);
 
             call_node->add_child(std::move(node));
@@ -180,36 +206,13 @@ std::unique_ptr<Ast::ast_node> Parser::parser_class::parse_expression() {
             consume(Token::token_type::RPAREN);
             call_node->add_child(std::move(arg_list));
             node = std::move(call_node);
-            
-            break;
         }
-
-        default:
-            throw std::runtime_error("Unexpected token: " + current_token().value +
-                                   " at line " + std::to_string(current_token().line));
-    }
-
-    while (match(Token::token_type::DOT)) {
-        consume(Token::token_type::DOT);
-
-        if (!match(Token::token_type::IDENTIFIER)) {
-            throw std::runtime_error("Expected identifier after '.' at line " +
-                                   std::to_string(current_token().line));
-        }
-
-        auto attr_node = std::make_unique<Ast::ast_node>(Ast::node_type::ATTRIBUTE_EXPR,
-                                                          current_token().value,
-                                                          current_token().line,
-                                                          current_token().column);
-        consume(Token::token_type::IDENTIFIER);
-
-        attr_node->add_child(std::move(node));
-        node = std::move(attr_node);
     }
 
     return node;
 }
 
+/* Todo: should make it so that 1 + 2 * 3 evals to 1 + (2 * 3) not (1 + 2) * 3 */
 std::unique_ptr<Ast::ast_node> Parser::parser_class::parse_operator() {
     auto left = parse_expression();
 
@@ -230,7 +233,7 @@ std::unique_ptr<Ast::ast_node> Parser::parser_class::parse_operator() {
         left = std::move(op_node);
     }
 
-    return left;
+    return parse_misc_expression(std::move(left));
 }
 
 std::unique_ptr<Ast::ast_node> Parser::parser_class::parse_statement() {
@@ -265,10 +268,100 @@ std::unique_ptr<Ast::ast_node> Parser::parser_class::parse_statement() {
         
         case Token::token_type::KEYWORD_PASS: 
             return parse_pass();
-            
+        
+        case Token::token_type::KEYWORD_TRY:
+            return parse_try();
+
+        case Token::token_type::KEYWORD_EXCEPT:
+            return parse_expect();
+
+        case Token::token_type::KEYWORD_FINALLY:
+            return parse_finally();
+
         default:
             return parse_assignment();
     }
+}
+
+std::unique_ptr<Ast::ast_node> Parser::parser_class::parse_try() {
+    consume(Token::token_type::KEYWORD_TRY);
+
+    auto try_node = std::make_unique<Ast::ast_node>(Ast::node_type::TRY_STMT,
+                                                     "",
+                                                     current_token().line,
+                                                     current_token().column);
+    
+    consume_newline();
+    auto try_body = std::make_unique<Ast::ast_node>(Ast::node_type::BLOCK,
+                                                    "",
+                                                    current_token().line,
+                                                    current_token().column);
+
+    while (!match(Token::token_type::DEDENT) && !is_at_end()) {
+        auto stmt = parse_statement();
+        if (stmt) {
+            try_body->add_child(std::move(stmt));
+        }
+    }
+
+    consume(Token::token_type::DEDENT);
+    try_node->add_child(std::move(try_body));
+
+    return try_node;
+}
+
+std::unique_ptr<Ast::ast_node> Parser::parser_class::parse_expect() {
+    consume(Token::token_type::KEYWORD_EXCEPT);
+
+    auto expect_node = std::make_unique<Ast::ast_node>(Ast::node_type::EXCEPT_STMT,
+                                                     "",
+                                                     current_token().line,
+                                                     current_token().column);
+    
+    consume_newline();
+    auto expect_body = std::make_unique<Ast::ast_node>(Ast::node_type::BLOCK,
+                                                    "",
+                                                    current_token().line,
+                                                    current_token().column);
+
+    while (!match(Token::token_type::DEDENT) && !is_at_end()) {
+        auto stmt = parse_statement();
+        if (stmt) {
+            expect_body->add_child(std::move(stmt));
+        }
+    }
+
+    consume(Token::token_type::DEDENT);
+    expect_node->add_child(std::move(expect_body));
+
+    return expect_node;
+}
+
+std::unique_ptr<Ast::ast_node> Parser::parser_class::parse_finally() {
+    consume(Token::token_type::KEYWORD_FINALLY);
+
+    auto finally_node = std::make_unique<Ast::ast_node>(Ast::node_type::FINALLY_STMT,
+                                                     "",
+                                                     current_token().line,
+                                                     current_token().column);
+    
+    consume_newline();
+    auto finally_body = std::make_unique<Ast::ast_node>(Ast::node_type::BLOCK,
+                                                    "",
+                                                    current_token().line,
+                                                    current_token().column);
+
+    while (!match(Token::token_type::DEDENT) && !is_at_end()) {
+        auto stmt = parse_statement();
+        if (stmt) {
+            finally_body->add_child(std::move(stmt));
+        }
+    }
+
+    consume(Token::token_type::DEDENT);
+    finally_node->add_child(std::move(finally_body));
+
+    return finally_node;
 }
 
 std::unique_ptr<Ast::ast_node> Parser::parser_class::parse_pass() {
@@ -669,4 +762,3 @@ std::unique_ptr<Ast::ast_node> Parser::parser_class::parse_list() {
     consume(Token::token_type::RBRACKET);
     return list_node;
 }
- 
