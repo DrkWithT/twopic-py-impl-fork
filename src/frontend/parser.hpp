@@ -13,9 +13,9 @@ namespace Parser {
     /* I decided upon a recursive descent appoarch */    
     class parser_class {
         private:
-            std::vector<Token::token_class> tokens;
-            size_t current_pos;
-            Ast::ast_class ast_tree;
+            std::vector<Token::token_class> tokens {};
+            std::size_t current_pos {};
+            Ast::ast_class ast_tree {};
 
             Token::token_class& current_token();
             Token::token_class& previous_token();
@@ -52,7 +52,7 @@ namespace Parser {
             void consume_line();
 
         public:
-            parser_class(Lexical::lexical_class& lexer);
+            parser_class(Lexical::lexical_class& lexer) : current_pos(0) {};
 
             /* Parses the file */
             std::unique_ptr<Ast::ast_node> parse();

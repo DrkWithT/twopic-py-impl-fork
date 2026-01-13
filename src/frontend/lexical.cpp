@@ -7,7 +7,6 @@
 #include "frontend/lexical.hpp"
 
 Lexical::lexical_class::lexical_class(std::string_view source)
-    : position(0), source(source), line(1), column(0)
 {
     indent.push_back(0);  
 
@@ -63,8 +62,8 @@ std::string Lexical::read_file(std::string_view filename) {
     return buffer.str();
 }
 
-void Lexical::lexical_class::handle_indentation(std::vector<Token::token_class>& tokens, size_t start_line) {
-    size_t spaces = 0;
+void Lexical::lexical_class::handle_indentation(std::vector<Token::token_class>& tokens, std::size_t start_line) {
+    std::size_t spaces = 0;
     while (position < source.length() && (source[position] == ' ' || source[position] == '\t')) {
         if (source[position] == '\t') {
             spaces += 4;  
@@ -78,7 +77,7 @@ void Lexical::lexical_class::handle_indentation(std::vector<Token::token_class>&
         return;
     }
 
-    size_t current_indent = indent.back();
+    std::size_t current_indent = indent.back();
 
     if (spaces > current_indent) {
         indent.push_back(spaces);
@@ -118,7 +117,7 @@ bool Lexical::lexical_class::is_float() {
         return false;
     }
 
-    size_t temp_pos = position;
+    std::size_t temp_pos = position;
     while (temp_pos < source.length() && std::isdigit(source[temp_pos])) {
         temp_pos++;
     }
@@ -177,8 +176,8 @@ std::vector<Token::token_class> Lexical::lexical_class::tokenize() {
     bool at_line_start = true;  
 
     while (position < source.length()) {
-        size_t start_line = line;
-        size_t start_column = column;
+        std::size_t start_line = line;
+        std::size_t start_column = column;
 
         if (at_line_start && source[position] != '\n') {
             handle_indentation(tokens, start_line);
@@ -199,7 +198,7 @@ std::vector<Token::token_class> Lexical::lexical_class::tokenize() {
         }
 
         if (is_float()) {
-            size_t start = position;
+            std::size_t start = position;
 
             while (position < source.length() && std::isdigit(source[position])) {
                 next_token();
@@ -219,7 +218,7 @@ std::vector<Token::token_class> Lexical::lexical_class::tokenize() {
         }        
 
         if (is_integer()) {
-            size_t start = position;
+            std::size_t start = position;
             while (position < source.length() && std::isdigit(source[position])) {
                 next_token();
             }
@@ -232,7 +231,7 @@ std::vector<Token::token_class> Lexical::lexical_class::tokenize() {
         if (is_string()) {
             char quote = source[position];
             next_token(); 
-            size_t start = position;
+            std::size_t start = position;
 
             while (position < source.length() && source[position] != quote) {
                 if (source[position] == '\\') {
@@ -255,7 +254,7 @@ std::vector<Token::token_class> Lexical::lexical_class::tokenize() {
         }
 
         if (is_identifier()) {
-            size_t start = position;
+            std::size_t start = position;
 
             while (position < source.length() && (std::isalnum(source[position]) || source[position] == '_')) {
                 next_token();
@@ -432,7 +431,6 @@ std::vector<Token::token_class> Lexical::lexical_class::tokenize() {
         next_token();
     }
 
-    // Emit DEDENT tokens for all remaining indentation levels at EOF
     while (indent.size() > 1) {
         indent.pop_back();
         tokens.push_back({Token::token_type::DEDENT, "", line, column});

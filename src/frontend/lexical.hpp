@@ -6,6 +6,7 @@
 #include <unordered_map>
 #include <fstream>
 #include <vector>
+#include <cstddef>
 
 #include "frontend/token.hpp"
 
@@ -14,21 +15,20 @@ Lexer (Lexical Analysis): Checking spelling. (Is "appl" a word? No. Is "apple" a
 */
 
 namespace Lexical {
-    // Standalone function to read file
     std::string read_file(std::string_view filename);
 
     class lexical_class {
         private:
-            size_t position;
-            std::string_view source;
-            size_t line;
-            size_t column;
+            std::size_t position {};
+            std::string_view source {};
+            std::size_t line {};
+            std::size_t column {};
 
-            std::unordered_map<std::string, Token::token_type> keyword;
-            std::vector<size_t> indent;
+            std::unordered_map<std::string, Token::token_type> keyword {};
+            std::vector<std::size_t> indent {};
 
             void next_token();
-            void handle_indentation(std::vector<Token::token_class>& tokens, size_t start_line);
+            void handle_indentation(std::vector<Token::token_class>& tokens, std::size_t start_line);
 
             bool is_string();
             bool is_float();
@@ -37,7 +37,8 @@ namespace Lexical {
             bool is_identifier();
 
         public:
-            lexical_class(std::string_view source);
+            lexical_class(std::string_view source) :
+            position(0), source(source), line(1), column(0) {};
 
             /* tokenize the input strings */
             std::vector<Token::token_class> tokenize();

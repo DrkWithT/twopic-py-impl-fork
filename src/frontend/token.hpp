@@ -3,6 +3,7 @@
 
 #include <string>
 #include <unordered_map>
+#include <cstddef>
 
 /* The token determines what type a certain phrase or word is going to be for a character*/
 
@@ -95,8 +96,8 @@ namespace Token {
     struct token_class {
         token_type type;
         std::string value;
-        size_t line;
-        size_t column;
+        std::size_t line;
+        std::size_t column;
     };
 }
 

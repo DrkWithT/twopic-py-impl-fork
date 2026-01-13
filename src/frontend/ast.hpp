@@ -6,6 +6,7 @@
 #include <string>
 #include <variant>
 #include <string_view>
+#include <cstddef>
 
 #include "frontend/token.hpp"
 
@@ -81,7 +82,8 @@ namespace Ast {
         Token::token_class token_m;
         std::vector<std::unique_ptr<ast_node>> children_m;
 
-        ast_node(node_type t, const std::string& val = "", size_t position = 0, size_t col = 0)
+        /* todo: might used aggregate init rather than a constructor */
+        ast_node(node_type t, const std::string& val = "", std::size_t position = 0, size_t col = 0)
             : type(t), token_m{Token::token_type::DEFAULT, val, position, col} {}
 
         void add_child(std::unique_ptr<ast_node> child) {
@@ -91,11 +93,9 @@ namespace Ast {
 
     class ast_class {
         private:
-            std::unique_ptr<ast_node> root;
+            std::unique_ptr<ast_node> root = nullptr;
 
         public:
-            ast_class() : root(nullptr) {}
-
             void set_root(std::unique_ptr<ast_node> node) {
                 root = std::move(node);
             }
