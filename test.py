@@ -33,6 +33,13 @@ class new_world:
     
 wrld = new_world("world")
 
+if x:
+    print("no")
+elif y:
+    print("hi")
+else:
+    print("hello")
+
 x = 42
 y = 3.14
 greet("World")
@@ -50,4 +57,3 @@ except:
   print("Something went wrong")
 finally:
   print("The 'try except' is finished")
-    

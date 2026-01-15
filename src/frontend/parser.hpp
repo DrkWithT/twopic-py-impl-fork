@@ -1,11 +1,12 @@
 #ifndef PARSER_HPP
 #define PARSER_HPP 
 
+#include <functional>
+
 #include "frontend/ast.hpp"
 #include "frontend/lexical.hpp"
 
 /* Basically anylisis the syntax of a group of phrases */
-
 
 /* Left-associative would be loops 
    Right-associative would be recursion  */
@@ -41,14 +42,15 @@ namespace Parser {
             std::unique_ptr<Ast::ast_node> parse_for_stmt();
             std::unique_ptr<Ast::ast_node> parse_match_stmt();
             std::unique_ptr<Ast::ast_node> parse_return_stmt();
-            std::unique_ptr<Ast::ast_node> parse_assignment();
-            std::unique_ptr<Ast::ast_node> parse_operator();
-            std::unique_ptr<Ast::ast_node> parse_case();
-            std::unique_ptr<Ast::ast_node> parse_list();
             std::unique_ptr<Ast::ast_node> parse_pass();
             std::unique_ptr<Ast::ast_node> parse_try();
-            std::unique_ptr<Ast::ast_node> parse_expect();
-            std::unique_ptr<Ast::ast_node> parse_finally();
+
+            std::unique_ptr<Ast::ast_node> parse_assignment();
+            std::unique_ptr<Ast::ast_node> parse_term();
+            std::unique_ptr<Ast::ast_node> parse_factor();
+            std::unique_ptr<Ast::ast_node> parse_power();
+            std::unique_ptr<Ast::ast_node> parse_case();
+            std::unique_ptr<Ast::ast_node> parse_list();
 
             std::unique_ptr<Ast::ast_node> parse_misc_expression(std::unique_ptr<Ast::ast_node> node);
             //std::unique_ptr<Ast::ast_node> parse_dict();
