@@ -20,14 +20,6 @@ parse_return_stmt()    - Return statements
 parse_if_stmt()        - If statements
 */
 
-
-/* 
-Left-Associative example:
-a - b - c  ≡  (a - b) - c
-Expr → Term { op Term }
-*/
-
-
 Parser::parser_class::parser_class(Lexical::lexical_class& lexer) : current_pos(0)  {
     tokens = lexer.tokenize();
 
@@ -295,6 +287,10 @@ std::unique_ptr<Ast::ast_node> Parser::parser_class::parse_power() {
     return left;
 }
 
+/* std::unique_ptr<Ast::ast_node> Parser::parser_class::parse_bitwise() {
+    
+} */
+
 std::unique_ptr<Ast::ast_node> Parser::parser_class::parse_statement() {
     switch (current_token().type) {
         case Token::token_type::NEWLINE:
@@ -459,7 +455,7 @@ std::unique_ptr<Ast::ast_node> Parser::parser_class::parse_pass() {
 }
 
 std::unique_ptr<Ast::ast_node> Parser::parser_class::parse_assignment() {
-    auto expr = parse_equality();
+    auto left = parse_equality();
 
     if (match(Token::token_type::EQUAL)) {
         auto assign_node = std::make_unique<Ast::ast_node>(
@@ -468,33 +464,29 @@ std::unique_ptr<Ast::ast_node> Parser::parser_class::parse_assignment() {
         );
         consume(Token::token_type::EQUAL);
 
-        assign_node->add_child(std::move(expr));
-        assign_node->add_child(parse_equality());
+        assign_node->add_child(std::move(left));
+        assign_node->add_child(parse_assignment());
 
         return assign_node;
     }
 
-    if (match(Token::token_type::PLUS_EQUAL) || match(Token::token_type::MINUS_EQUAL) ||
-        match(Token::token_type::STAR_EQUAL) || match(Token::token_type::SLASH_EQUAL)) {
-
-        auto aug_node = std::make_unique<Ast::ast_node>(
+    if (match(Token::token_type::PLUS_EQUAL) ||
+        match(Token::token_type::MINUS_EQUAL) ||
+        match(Token::token_type::STAR_EQUAL) ||
+        match(Token::token_type::SLASH_EQUAL)) {
+        auto aug_assign_node = std::make_unique<Ast::ast_node>(
             Ast::node_type::AUGMENTED_ASSIGNMENT,
-            Token::token_class{Token::token_type::DEFAULT, current_token().value, current_token().line, current_token().column}
+            Token::token_class{current_token().type, current_token().value, current_token().line, current_token().column}
         );
-        current_pos++;
+        consume(current_token().type);
 
-        aug_node->add_child(std::move(expr));
-        aug_node->add_child(parse_equality());
+        aug_assign_node->add_child(std::move(left));
+        aug_assign_node->add_child(parse_assignment());  
 
-        return aug_node;
+        return aug_assign_node;
     }
 
-    auto expr_stmt = std::make_unique<Ast::ast_node>(
-        Ast::node_type::EXPRESSION_STMT,
-        Token::token_class{Token::token_type::DEFAULT, "", expr->token_m.line, expr->token_m.column}
-    );
-    expr_stmt->add_child(std::move(expr));
-    return expr_stmt;
+    return left;
 }
 
 std::unique_ptr<Ast::ast_node> Parser::parser_class::parse_return_stmt() {

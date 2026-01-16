@@ -10,6 +10,18 @@
 
 /* Old notes sucks but its basically a top-down or LL parser*/
 
+
+/* 
+Left-Associative example:
+a - b - c  ≡  (a - b) - c
+Expr → Term { op Term }
+
+Right-Associative example:
+a ** b ** c  ≡  a ** (b ** c)
+Expr → Base [ op Expr ]   (uses recursion, not loop)
+*/
+
+
 namespace Parser {
     /* I decided upon a recursive descent appoarch */    
     class parser_class {
@@ -48,15 +60,14 @@ namespace Parser {
             std::unique_ptr<Ast::ast_node> parse_continue(); 
             std::unique_ptr<Ast::ast_node> parse_list();
             
-            /* Left-associative Operators uses loops rather than recursion 
-                this would help with classifying expersions 
-            */
             std::unique_ptr<Ast::ast_node> parse_term();
             std::unique_ptr<Ast::ast_node> parse_factor();
             std::unique_ptr<Ast::ast_node> parse_power();
             std::unique_ptr<Ast::ast_node> parse_case();
             std::unique_ptr<Ast::ast_node> parse_equality();
+            std::unique_ptr<Ast::ast_node> parse_comparator();
             std::unique_ptr<Ast::ast_node> parse_assignment();
+            std::unique_ptr<Ast::ast_node> parse_bitwise();
 
             std::unique_ptr<Ast::ast_node> parse_misc_expression(std::unique_ptr<Ast::ast_node> node);
             //std::unique_ptr<Ast::ast_node> parse_dict();
