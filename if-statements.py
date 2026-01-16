@@ -4,8 +4,6 @@ x *= 2
 x -= 3
 x /= 4
 
-if x == 2:
-    print("hello") 
+plus = 3 * 2 - 1 // 10
 
-if y:
-    x
+plus = 3 / 2 - 1 % 10

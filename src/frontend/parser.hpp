@@ -34,13 +34,9 @@ namespace Parser {
             Token::token_class& previous_token();
 
             bool match(const Token::token_type& type);
-
-            /* 
-            Consume advances the token when match returns true and 
-            allows for more error handling 
-            */
-            bool consume(const Token::token_type& type);
             bool is_at_end();            
+
+            void consume(const Token::token_type& type);
 
              // Something that produces a value 
             std::unique_ptr<Ast::ast_node> parse_expression();

@@ -26,13 +26,8 @@ Parser::parser_class::parser_class(Lexical::lexical_class& lexer) : current_pos(
     std::cerr << "Parser constructor called" << std::endl;
 }
 
-bool Parser::parser_class::consume(const Token::token_type& type) {
-    if (match(type)) {
-        current_pos++;
-        return true;
-    }
-
-    return false;
+void Parser::parser_class::consume(const Token::token_type& type) {
+    current_pos++;
 }
 
 Token::token_class& Parser::parser_class::previous_token() {
@@ -218,7 +213,7 @@ std::unique_ptr<Ast::ast_node> Parser::parser_class::parse_term() {
             Ast::node_type::BINARY_OP,
             Token::token_class{Token::token_type::DEFAULT, current_token().value, current_token().line, current_token().column}
         );
-        current_pos++;
+        consume(current_token().type);
 
         op_node->add_child(std::move(left));
         op_node->add_child(parse_factor());
@@ -237,7 +232,7 @@ std::unique_ptr<Ast::ast_node> Parser::parser_class::parse_equality() {
             Ast::node_type::EQUALITY_OP,
             Token::token_class{Token::token_type::DEFAULT, current_token().value, current_token().line, current_token().column}
         );
-        current_pos++;
+        consume(current_token().type);
 
         op_node->add_child(std::move(left));
         op_node->add_child(parse_term());
@@ -257,8 +252,8 @@ std::unique_ptr<Ast::ast_node> Parser::parser_class::parse_factor() {
             Ast::node_type::BINARY_OP,
             Token::token_class{Token::token_type::DEFAULT, current_token().value, current_token().line, current_token().column}
         );
-        current_pos++;
-
+        consume(current_token().type);
+        
         op_node->add_child(std::move(left));
         op_node->add_child(parse_power());
 
@@ -276,7 +271,7 @@ std::unique_ptr<Ast::ast_node> Parser::parser_class::parse_power() {
             Ast::node_type::BINARY_OP,
             Token::token_class{Token::token_type::DEFAULT, current_token().value, current_token().line, current_token().column}
         );
-        current_pos++;
+        
 
         op_node->add_child(std::move(left));
         op_node->add_child(parse_power());  
