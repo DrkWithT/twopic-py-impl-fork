@@ -52,6 +52,7 @@ void print_ast(const Ast::ast_node* node, int indent = 0) {
         case Ast::node_type::NONE_LITERAL: std::cout << "NONE_LITERAL"; break;
         case Ast::node_type::PARAMETER_LIST: std::cout << "PARAMETER_LIST"; break;
         case Ast::node_type::PARAMETER: std::cout << "PARAMETER"; break;
+        case Ast::node_type::COMPARISON: std::cout << "COMPARISON"; break;
         case Ast::node_type::ARGUMENT_LIST: std::cout << "ARGUMENT_LIST"; break;
         case Ast::node_type::BLOCK: std::cout << "BLOCK"; break;
         case Ast::node_type::LIST: std::cout << "LIST"; break;

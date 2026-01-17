@@ -12,3 +12,18 @@ ab2 = a | b
 ab3 = a ^ b
 ab4 = a << n
 ab5 = a >> n
+
+if ab1 > ab2:
+    x
+
+if ab1 < ab2:
+    x
+
+if ab1 <= ab2:
+    x
+
+if ab1 >= ab5:
+    x
+
+while ab1 > ab5:
+    x

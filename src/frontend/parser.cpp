@@ -11,6 +11,7 @@ parse_program()        - Top level
 parse_statement()      - Statement dispatcher
 parse_assignment()     - Assignments
 parse_equality()       - Equality (==, !=)
+parse_comparator()     - Comparison (<, >, <=, >=) (right-associative)
 parse_bitwise()        - Bitwise ops (|, ^, &, <<, >>)
 parse_term()           - Addition / subtraction
 parse_factor()         - Multiplication / division
@@ -211,6 +212,26 @@ std::unique_ptr<Ast::ast_node> Parser::parser_class::parse_misc_expression(std::
     return node;
 }
 
+std::unique_ptr<Ast::ast_node> Parser::parser_class::parse_comparator() {
+    auto left = parse_bitwise();
+
+    if (match(Token::token_type::GREATER) || match(Token::token_type::GREATER_EQUAL) ||
+        match(Token::token_type::LESS) || match(Token::token_type::LESS_EQUAL)) {
+        auto op_node = std::make_unique<Ast::ast_node>(
+            Ast::node_type::COMPARISON,
+            Token::token_class{Token::token_type::DEFAULT, current_token().value, current_token().line, current_token().column}
+        );
+        consume(current_token().type);
+
+        op_node->add_child(std::move(left));
+        op_node->add_child(parse_comparator());
+
+        return op_node;
+    }
+
+    return left;
+}
+
 std::unique_ptr<Ast::ast_node> Parser::parser_class::parse_term() {
     auto left = parse_factor();
 
@@ -231,7 +252,7 @@ std::unique_ptr<Ast::ast_node> Parser::parser_class::parse_term() {
 }
 
 std::unique_ptr<Ast::ast_node> Parser::parser_class::parse_equality() {
-    auto left = parse_bitwise();
+    auto left = parse_comparator();
 
     while (match(Token::token_type::DOUBLE_EQUAL) || match(Token::token_type::NOT_EQUAL)) {
          auto op_node = std::make_unique<Ast::ast_node>(
@@ -241,7 +262,7 @@ std::unique_ptr<Ast::ast_node> Parser::parser_class::parse_equality() {
         consume(current_token().type);
 
         op_node->add_child(std::move(left));
-        op_node->add_child(parse_bitwise());
+        op_node->add_child(parse_comparator());
 
         left = std::move(op_node);
     }
@@ -737,7 +758,7 @@ std::unique_ptr<Ast::ast_node> Parser::parser_class::parse_while_stmt() {
     );
     consume(Token::token_type::KEYWORD_WHILE);
 
-    while_node->add_child(parse_expression());
+    while_node->add_child(parse_equality());
 
     consume_newline();
     auto body = std::make_unique<Ast::ast_node>(
