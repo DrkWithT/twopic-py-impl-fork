@@ -36,7 +36,7 @@ namespace Parser {
             bool match(const Token::token_type& type);
             bool is_at_end();            
 
-            void consume(const Token::token_type& type);
+            bool consume(const Token::token_type& type);
 
              // Something that produces a value 
             std::unique_ptr<Ast::ast_node> parse_expression();

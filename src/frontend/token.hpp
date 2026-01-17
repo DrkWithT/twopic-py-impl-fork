@@ -48,6 +48,13 @@ namespace Token {
         POWER,
         AT,
 
+        AMPERSAND,
+        PIPE,
+        CARET,
+        TILDE,
+        LEFT_SHIFT,
+        RIGHT_SHIFT,
+
         LESS,
         GREATER,
         LESS_EQUAL,

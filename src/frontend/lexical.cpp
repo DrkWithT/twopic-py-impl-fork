@@ -392,6 +392,16 @@ std::vector<Token::token_class> Lexical::lexical_class::tokenize() {
                 position += 2;
                 column += 2;
                 continue;
+            } else if (two_char == "<<") {
+                tokens.push_back({Token::token_type::LEFT_SHIFT, two_char, start_line, start_column});
+                position += 2;
+                column += 2;
+                continue;
+            } else if (two_char == ">>") {
+                tokens.push_back({Token::token_type::RIGHT_SHIFT, two_char, start_line, start_column});
+                position += 2;
+                column += 2;
+                continue;
             }
         }
 
@@ -419,6 +429,10 @@ std::vector<Token::token_class> Lexical::lexical_class::tokenize() {
             case ':': type = Token::token_type::COLON; break;
             case ';': type = Token::token_type::SEMICOLON; break;
             case '.': type = Token::token_type::DOT; break;
+            case '&': type = Token::token_type::AMPERSAND; break;
+            case '|': type = Token::token_type::PIPE; break;
+            case '^': type = Token::token_type::CARET; break;
+            case '~': type = Token::token_type::TILDE; break;
             default:
                 matched = false;
                 break;
@@ -499,6 +513,12 @@ std::string Lexical::lexical_class::token_type_name(const Token::token_class& to
             case Token::token_type::PERCENT: return "PERCENT";
             case Token::token_type::POWER: return "POWER";
             case Token::token_type::AT: return "AT";
+            case Token::token_type::AMPERSAND: return "AMPERSAND";
+            case Token::token_type::PIPE: return "PIPE";
+            case Token::token_type::CARET: return "CARET";
+            case Token::token_type::TILDE: return "TILDE";
+            case Token::token_type::LEFT_SHIFT: return "LEFT_SHIFT";
+            case Token::token_type::RIGHT_SHIFT: return "RIGHT_SHIFT";
             case Token::token_type::LESS: return "LESS";
             case Token::token_type::GREATER: return "GREATER";
             case Token::token_type::LESS_EQUAL: return "LESS_EQUAL";

@@ -10,7 +10,9 @@ Recursive descent order (higher precedence = parsed deeper)
 parse_program()        - Top level
 parse_statement()      - Statement dispatcher
 parse_assignment()     - Assignments
-parse_term()           - Addition / subtraction (lowest precedence)
+parse_equality()       - Equality (==, !=)
+parse_bitwise()        - Bitwise ops (|, ^, &, <<, >>)
+parse_term()           - Addition / subtraction
 parse_factor()         - Multiplication / division
 parse_power()          - Exponentiation (right-associative)
 parse_expression()     - Literals, identifiers, primaries
@@ -26,9 +28,13 @@ Parser::parser_class::parser_class(Lexical::lexical_class& lexer) : current_pos(
     std::cerr << "Parser constructor called" << std::endl;
 }
 
-void Parser::parser_class::consume(const Token::token_type& type) {
-    current_pos++;
-}
+bool Parser::parser_class::consume(const Token::token_type& type) {
+    if (match(type)) {
+        current_pos++;
+        return true;
+    }
+    return false;
+}    
 
 Token::token_class& Parser::parser_class::previous_token() {
     return tokens[--current_pos];
@@ -225,7 +231,7 @@ std::unique_ptr<Ast::ast_node> Parser::parser_class::parse_term() {
 }
 
 std::unique_ptr<Ast::ast_node> Parser::parser_class::parse_equality() {
-    auto left = parse_term();
+    auto left = parse_bitwise();
 
     while (match(Token::token_type::DOUBLE_EQUAL) || match(Token::token_type::NOT_EQUAL)) {
          auto op_node = std::make_unique<Ast::ast_node>(
@@ -235,7 +241,7 @@ std::unique_ptr<Ast::ast_node> Parser::parser_class::parse_equality() {
         consume(current_token().type);
 
         op_node->add_child(std::move(left));
-        op_node->add_child(parse_term());
+        op_node->add_child(parse_bitwise());
 
         left = std::move(op_node);
     }
@@ -282,9 +288,26 @@ std::unique_ptr<Ast::ast_node> Parser::parser_class::parse_power() {
     return left;
 }
 
-/* std::unique_ptr<Ast::ast_node> Parser::parser_class::parse_bitwise() {
-    
-} */
+std::unique_ptr<Ast::ast_node> Parser::parser_class::parse_bitwise() {
+    auto left = parse_term();
+
+    while (match(Token::token_type::PIPE) || match(Token::token_type::CARET) ||
+           match(Token::token_type::AMPERSAND) || match(Token::token_type::LEFT_SHIFT) ||
+           match(Token::token_type::RIGHT_SHIFT)) {
+        auto op_node = std::make_unique<Ast::ast_node>(
+            Ast::node_type::BINARY_OP,
+            Token::token_class{Token::token_type::DEFAULT, current_token().value, current_token().line, current_token().column}
+        );
+        consume(current_token().type);
+
+        op_node->add_child(std::move(left));
+        op_node->add_child(parse_term());
+
+        left = std::move(op_node);
+    }
+
+    return left;
+}
 
 std::unique_ptr<Ast::ast_node> Parser::parser_class::parse_statement() {
     switch (current_token().type) {
