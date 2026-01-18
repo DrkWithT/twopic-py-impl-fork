@@ -2,6 +2,8 @@ cmake_minimum_required(VERSION 3.20)
 
 project(LexicalAnalyzer VERSION 1.0 LANGUAGES CXX)
 
+find_package(fmt REQUIRED)
+
 if(DEFINED SANITIZER_FLAGS)
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${SANITIZER_FLAGS}")
     message(STATUS "Sanitizers enabled: AddressSanitizer, UndefinedBehaviorSanitizer")
@@ -20,7 +22,7 @@ if (APPLE AND LLVM_LIBRARY_DIR)
     target_link_directories(lexical_analyzer PUBLIC "${LLVM_LIBRARY_DIR}/c++" PUBLIC ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
 endif ()
 
-target_link_libraries(lexical_analyzer PRIVATE frontend)
+target_link_libraries(lexical_analyzer PRIVATE frontend fmt::fmt)
 
 message(STATUS "C++ Compiler: ${CMAKE_CXX_COMPILER}")
 message(STATUS "C++ Standard: ${CMAKE_CXX_STANDARD}")
