@@ -16,12 +16,14 @@ void print_ast(const Ast::ast_node* node, int indent = 0) {
 
     const char* type_str = "UNKNOWN";
     switch (node->type) {
+        case Ast::node_type::INIT_KEYWORD: type_str = "INIT_KEYWORD"; break;
         case Ast::node_type::EQUALITY_OP: type_str = "EQUALITY_OP"; break;
         case Ast::node_type::PROGRAM: type_str = "PROGRAM"; break;
         case Ast::node_type::TRY_STMT: type_str = "TRY_STMT"; break;
         case Ast::node_type::EXCEPT_STMT: type_str = "EXCEPT_STMT"; break;
         case Ast::node_type::FINALLY_STMT: type_str = "FINALLY_STMT"; break;
         case Ast::node_type::FUNCTION_DEF: type_str = "FUNCTION_DEF"; break;
+        case Ast::node_type::METHOD_DEF: type_str = "METHOD_DEF"; break;
         case Ast::node_type::CLASS_DEF: type_str = "CLASS_DEF"; break;
         case Ast::node_type::IF_STMT: type_str = "IF_STMT"; break;
         case Ast::node_type::ELIF_STMT: type_str = "ELIF_STMT"; break;

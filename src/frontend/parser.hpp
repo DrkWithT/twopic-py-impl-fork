@@ -55,7 +55,8 @@ namespace Parser {
             std::unique_ptr<Ast::ast_node> parse_break();
             std::unique_ptr<Ast::ast_node> parse_continue(); 
             std::unique_ptr<Ast::ast_node> parse_list();
-            
+            std::unique_ptr<Ast::ast_node> parse_method();
+
             std::unique_ptr<Ast::ast_node> parse_term();
             std::unique_ptr<Ast::ast_node> parse_factor();
             std::unique_ptr<Ast::ast_node> parse_power();

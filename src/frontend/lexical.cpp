@@ -9,7 +9,7 @@
 Lexical::lexical_class::lexical_class(const std::string& source) : position(0), source(source), line(1), column(1) {
     indent.emplace_back(0);  
 
-    keyword = {
+    predefined_keyword = {
         {"if", Token::token_type::KEYWORD_IF},
         {"else", Token::token_type::KEYWORD_ELSE},
         {"elif", Token::token_type::KEYWORD_ELIF},
@@ -47,6 +47,9 @@ Lexical::lexical_class::lexical_class(const std::string& source) : position(0), 
         {"await", Token::token_type::KEYWORD_AWAIT},
         {"match", Token::token_type::KEYWORD_MATCH},
         {"case", Token::token_type::KEYWORD_CASE},
+        {"enum", Token::token_type::KEYWORD_ENUM},
+        {"self", Token::token_type::KEYWORD_SELF},
+        {"__init__", Token::token_type::KEYWORD_INIT},
     };
 }
 
@@ -265,8 +268,8 @@ std::vector<Token::token_class> Lexical::lexical_class::tokenize() {
 
             std::string identifier(source.substr(start, position - start));
 
-            auto it = keyword.find(identifier);
-            if (it == keyword.end()) {
+            auto it = predefined_keyword.find(identifier);
+            if (it == predefined_keyword.end()) {
                 tokens.push_back({Token::token_type::IDENTIFIER, identifier, start_line, start_column});
             } else {
                 tokens.push_back({it->second, identifier, start_line, start_column});
@@ -500,6 +503,9 @@ std::string Lexical::lexical_class::token_type_name(const Token::token_class& to
             case Token::token_type::KEYWORD_WHILE: return "KEYWORD_WHILE";
             case Token::token_type::KEYWORD_WITH: return "KEYWORD_WITH";
             case Token::token_type::KEYWORD_YIELD: return "KEYWORD_YIELD";
+            case Token::token_type::KEYWORD_ENUM: return "KEYWORD_ENUM";
+            case Token::token_type::KEYWORD_SELF: return "KEYWORD_SELF";
+            case Token::token_type::KEYWORD_INIT: return "KEYWORD_INIT";
             case Token::token_type::IDENTIFIER: return "IDENTIFIER";
             case Token::token_type::INTEGER_LITERAL: return "INTEGER_LITERAL";
             case Token::token_type::FLOAT_LITERAL: return "FLOAT_LITERAL";

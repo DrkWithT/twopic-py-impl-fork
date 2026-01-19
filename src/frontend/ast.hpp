@@ -43,8 +43,11 @@ namespace Ast {
         WITH_STMT,
         MATCH_STMT,
         CASE_STMT,
+        INIT_KEYWORD,
+        SELF_KEYWORD,
 
         FUNCTION_DEF,
+        METHOD_DEF,
         CLASS_DEF,
         SELF,
         LAMBDA_DEF,
