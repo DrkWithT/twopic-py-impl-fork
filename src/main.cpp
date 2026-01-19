@@ -86,8 +86,7 @@ int main(int argc, char* argv[]) {
     fmt::print("=== Parsing file: {} ===\n\n", argv[1]);
 
     try {
-        std::string source_code = Lexical::read_file(argv[1]);
-
+        const std::string& source_code = Lexical::read_file(argv[1]);
         Lexical::lexical_class lexer(source_code);
 
         Parser::parser_class parser(lexer);

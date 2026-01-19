@@ -16,11 +16,10 @@ Lexer (Lexical Analysis): Checking spelling. (Is "appl" a word? No. Is "apple" a
 
 namespace Lexical {
     std::string read_file(std::string_view filename);
-
     class lexical_class {
         private:
             std::size_t position {};
-            std::string_view source {};
+            std::string source {};
             std::size_t line {};
             std::size_t column {};
 
@@ -37,7 +36,7 @@ namespace Lexical {
             bool is_identifier() const;
 
         public:
-            lexical_class(std::string_view source);
+            lexical_class(const std::string& source);
 
             /* tokenize the input strings */
             std::vector<Token::token_class> tokenize();
