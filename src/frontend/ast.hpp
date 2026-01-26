@@ -45,16 +45,17 @@ namespace Ast {
         CASE_STMT,
         INIT_KEYWORD,
         SELF_KEYWORD,
+        LAMBDA_STMT,
 
         FUNCTION_DEF,
         METHOD_DEF,
         CLASS_DEF,
         SELF,
-        LAMBDA_DEF,
         PARAMETER,
         PARAMETER_LIST,
         PARAMETER_DICT,
 
+        POWER_OP,
         EQUALITY_OP,
         BINARY_OP,
         UNARY_OP,

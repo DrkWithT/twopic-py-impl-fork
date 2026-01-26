@@ -41,6 +41,7 @@ void print_ast(const Ast::ast_node* node, int indent = 0) {
         case Ast::node_type::EXPRESSION_STMT: type_str = "EXPRESSION_STMT"; break;
         case Ast::node_type::BINARY_OP: type_str = "BINARY_OP"; break;
         case Ast::node_type::UNARY_OP: type_str = "UNARY_OP"; break;
+        case Ast::node_type::POWER_OP: type_str = "POWER_OP"; break;
         case Ast::node_type::LOGICAL_OP: type_str = "LOGICAL_OP"; break;
         case Ast::node_type::CALL_EXPR: type_str = "CALL_EXPR"; break;
         case Ast::node_type::ATTRIBUTE_EXPR: type_str = "ATTRIBUTE_EXPR"; break;

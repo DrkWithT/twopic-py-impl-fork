@@ -95,7 +95,7 @@ void Parser::parser_class::consume_line() {
    consume(Token::token_type::INDENT);
 }
 
-std::unique_ptr<Ast::ast_node> Parser::parser_class::parse_expression() {
+std::unique_ptr<Ast::ast_node> Parser::parser_class::parse_expression_types() {
     std::unique_ptr<Ast::ast_node> node;
 
     switch (current_token().type) {
@@ -148,6 +148,10 @@ std::unique_ptr<Ast::ast_node> Parser::parser_class::parse_expression() {
             node = parse_list();
             break;
         }
+
+        case Token::token_type::LCBRACE:
+            node = parse_dict();
+            break;
 
         default:
             throw std::runtime_error("Unexpected token: " + current_token().value +
@@ -291,14 +295,14 @@ std::unique_ptr<Ast::ast_node> Parser::parser_class::parse_factor() {
 }
 
 std::unique_ptr<Ast::ast_node> Parser::parser_class::parse_power() {
-    auto left = parse_expression();
+    auto left = parse_expression_types();
 
     if (match(Token::token_type::POWER)) {
         auto op_node = std::make_unique<Ast::ast_node>(
-            Ast::node_type::BINARY_OP,
-            Token::token_class{Token::token_type::DEFAULT, current_token().value, current_token().line, current_token().column}
+            Ast::node_type::POWER_OP,
+            Token::token_class{Token::token_type::POWER, current_token().value, current_token().line, current_token().column}
         );
-        
+        consume(current_token().type);
 
         op_node->add_child(std::move(left));
         op_node->add_child(parse_power());  
@@ -536,7 +540,7 @@ std::unique_ptr<Ast::ast_node> Parser::parser_class::parse_return_stmt() {
     consume(Token::token_type::KEYWORD_RETURN);
 
     if (!is_at_end() && !match(Token::token_type::NEWLINE)) {
-        ret_node->add_child(parse_expression());
+        ret_node->add_child(parse_expression_types());
     }
 
     return ret_node;
@@ -770,7 +774,7 @@ std::unique_ptr<Ast::ast_node> Parser::parser_class::parse_if_stmt() {
         );
         consume(Token::token_type::KEYWORD_ELIF);
 
-        elif_node->add_child(parse_expression());
+        elif_node->add_child(parse_expression_types());
 
         consume_newline();
         auto elif_body = std::make_unique<Ast::ast_node>(
@@ -866,7 +870,7 @@ std::unique_ptr<Ast::ast_node> Parser::parser_class::parse_for_stmt() {
 
     consume(Token::token_type::KEYWORD_IN);
 
-    for_node->add_child(parse_expression());
+    for_node->add_child(parse_expression_types());
 
     consume_newline();
     auto body = std::make_unique<Ast::ast_node>(
@@ -894,7 +898,7 @@ std::unique_ptr<Ast::ast_node> Parser::parser_class::parse_match_stmt() {
     );
     consume(Token::token_type::KEYWORD_MATCH);
 
-    match_node->add_child(parse_expression());
+    match_node->add_child(parse_expression_types());
 
     consume_newline();
     while (match(Token::token_type::KEYWORD_CASE) && !is_at_end()) {
@@ -916,7 +920,7 @@ std::unique_ptr<Ast::ast_node> Parser::parser_class::parse_case() {
     );
     consume(Token::token_type::KEYWORD_CASE);
 
-    case_node->add_child(parse_expression());
+    case_node->add_child(parse_expression_types());
 
     consume_newline();
     auto case_body = std::make_unique<Ast::ast_node>(
@@ -950,7 +954,7 @@ std::unique_ptr<Ast::ast_node> Parser::parser_class::parse_list() {
         return list_node;
     }
 
-    list_node->add_child(parse_expression());
+    list_node->add_child(parse_expression_types());
 
     while (match(Token::token_type::COMMA)) {
         consume(Token::token_type::COMMA);
@@ -959,9 +963,42 @@ std::unique_ptr<Ast::ast_node> Parser::parser_class::parse_list() {
             break;
         }
 
-        list_node->add_child(parse_expression());
+        list_node->add_child(parse_expression_types());
     }
 
     consume(Token::token_type::RBRACKET);
     return list_node;
+}
+
+auto Parser::parser_class::parse_dict() -> std::unique_ptr<Ast::ast_node> {
+    auto dict_node = std::make_unique<Ast::ast_node>(
+        Ast::node_type::DICT,
+        Token::token_class{Token::token_type::DEFAULT, "", current_token().line, current_token().column}
+    );
+    consume(Token::token_type::LCBRACE);
+
+    if (match(Token::token_type::RCBRACE)) {
+        consume(Token::token_type::RCBRACE);
+        return dict_node;
+    }
+
+    dict_node->add_child(parse_expression_types());
+
+    while (match(Token::token_type::COLON) || match(Token::token_type::COMMA)) {
+        consume(Token::token_type::COLON);
+        dict_node->add_child(parse_expression_types());   
+        
+        if (match(Token::token_type::COMMA)) {
+            consume(Token::token_type::COMMA); 
+                
+            if (match(Token::token_type::RCBRACE)) {
+                break;
+            }
+
+            dict_node->add_child(parse_expression_types());
+        }    
+    }   
+    
+    consume(Token::token_type::RCBRACE);
+    return dict_node;
 }

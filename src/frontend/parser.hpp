@@ -39,7 +39,7 @@ namespace Parser {
             bool consume(const Token::token_type& type);
 
              // Something that produces a value 
-            std::unique_ptr<Ast::ast_node> parse_expression();
+            std::unique_ptr<Ast::ast_node> parse_expression_types();
             // Performs a action ex: if, while, for, return 
             std::unique_ptr<Ast::ast_node> parse_statement();
 
@@ -56,6 +56,8 @@ namespace Parser {
             std::unique_ptr<Ast::ast_node> parse_continue(); 
             std::unique_ptr<Ast::ast_node> parse_list();
             std::unique_ptr<Ast::ast_node> parse_method();
+            std::unique_ptr<Ast::ast_node> parse_dict();
+            std::unique_ptr<Ast::ast_node> parse_lambda();
 
             std::unique_ptr<Ast::ast_node> parse_term();
             std::unique_ptr<Ast::ast_node> parse_factor();
@@ -67,7 +69,6 @@ namespace Parser {
             std::unique_ptr<Ast::ast_node> parse_bitwise();
 
             std::unique_ptr<Ast::ast_node> parse_misc_expression(std::unique_ptr<Ast::ast_node> node);
-            //std::unique_ptr<Ast::ast_node> parse_dict();
 
             void consume_newline();
             void consume_line();
