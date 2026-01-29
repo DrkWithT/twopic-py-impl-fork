@@ -38,6 +38,7 @@ namespace Parser {
 
             bool match(const Token::token_type& type);
 
+            // Special thanks to DerkT for fixing up my code!
             template <typename TokenType, typename ... Rest> requires (std::same_as<TokenType, Token::token_type>)
             bool match(TokenType first_type, Rest ... more_types) noexcept {
                 const auto current_tag = tokens.at(current_pos).type;
@@ -46,6 +47,7 @@ namespace Parser {
 
             bool is_at_end();
 
+            // Special thanks to DerkT for fixing up my code!
             template <typename ... TokenTypes>
             void consume(TokenTypes ... types) {
                 if constexpr (sizeof...(types) < 1) {
@@ -82,10 +84,14 @@ namespace Parser {
             std::unique_ptr<Ast::ast_node> parse_try();
             std::unique_ptr<Ast::ast_node> parse_break();
             std::unique_ptr<Ast::ast_node> parse_continue(); 
-            std::unique_ptr<Ast::ast_node> parse_list();
             std::unique_ptr<Ast::ast_node> parse_method();
-            std::unique_ptr<Ast::ast_node> parse_dict();
             std::unique_ptr<Ast::ast_node> parse_lambda();
+
+            std::unique_ptr<Ast::ast_node> parse_list();
+            std::unique_ptr<Ast::ast_node> parse_dict();
+
+            std::unique_ptr<Ast::ast_node> parse_attribute_expr();
+            std::unique_ptr<Ast::ast_node> parse_call_expr();
 
             std::unique_ptr<Ast::ast_node> parse_term();
             std::unique_ptr<Ast::ast_node> parse_factor();
@@ -95,8 +101,6 @@ namespace Parser {
             std::unique_ptr<Ast::ast_node> parse_comparator();
             std::unique_ptr<Ast::ast_node> parse_assignment();
             std::unique_ptr<Ast::ast_node> parse_bitwise();
-
-            std::unique_ptr<Ast::ast_node> parse_misc_expression(std::unique_ptr<Ast::ast_node> node);
 
             void consume_newline();
             void consume_line();

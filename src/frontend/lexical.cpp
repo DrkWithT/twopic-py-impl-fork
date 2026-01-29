@@ -2,7 +2,6 @@
 #include <stdexcept>
 #include <fstream>
 #include <sstream>
-#include <iostream>
 
 #include "frontend/lexical.hpp"
 
@@ -457,8 +456,6 @@ std::vector<Token::token_class> Lexical::lexical_class::tokenize() {
     }
 
     tokens.push_back({Token::token_type::EOF_TOKEN, "", line, column});
-
-    std::cerr << "Tokenizer Completeed" << std::endl;
 
     return tokens;
 }

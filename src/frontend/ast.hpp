@@ -46,6 +46,8 @@ namespace Ast {
         INIT_KEYWORD,
         SELF_KEYWORD,
         LAMBDA_STMT,
+        LAMBDA_PARAM_LIST,
+        LAMBDA_EXPRESSION,
 
         FUNCTION_DEF,
         METHOD_DEF,
@@ -54,7 +56,7 @@ namespace Ast {
         PARAMETER,
         PARAMETER_LIST,
         PARAMETER_DICT,
-
+        
         POWER_OP,
         EQUALITY_OP,
         BINARY_OP,
@@ -94,8 +96,8 @@ namespace Ast {
 
     class ast_class {
         private:
-            std::unique_ptr<ast_node> root = nullptr;
-
+            std::unique_ptr<ast_node> root {};
+            
         public:
             void set_root(std::unique_ptr<ast_node> node) {
                 root = std::move(node);

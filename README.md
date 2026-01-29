@@ -2,6 +2,8 @@
 
 A Python lexical analyzer and parser written in C++23 that tokenizes Python source code and builds an Abstract Syntax Tree (AST).
 
+Special Thanks to DrkWithT with helping me refactoring the match and consume inside the Parser namespace to include metaprogramming. This way I don't have to call consume(T) || consume (T) for larger conditionals.
+
 ## Features
 
 - **Lexical Analysis**: Tokenizes Python source code into meaningful tokens
