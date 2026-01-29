@@ -34,7 +34,6 @@ namespace Parser {
             Ast::ast_class ast_tree {};
 
             Token::token_class& current_token();
-            Token::token_class& previous_token();
 
             bool match(const Token::token_type& type);
 
@@ -54,6 +53,8 @@ namespace Parser {
                     current_pos++;
                     return;
                 } else {
+                    // Basically if i consumed the wrong type of the current type like consume(Colon) != match(Newline)
+                    // it has a runtime error
                     if (const auto& current_token_ref = tokens.at(current_pos); !match(types...)) {
                         throw std::runtime_error(
                             std::format(
@@ -90,8 +91,9 @@ namespace Parser {
             std::unique_ptr<Ast::ast_node> parse_list();
             std::unique_ptr<Ast::ast_node> parse_dict();
 
-            std::unique_ptr<Ast::ast_node> parse_attribute_expr();
             std::unique_ptr<Ast::ast_node> parse_call_expr();
+            std::unique_ptr<Ast::ast_node> parse_attribute_expr();
+            std::unique_ptr<Ast::ast_node> parse_self();
 
             std::unique_ptr<Ast::ast_node> parse_term();
             std::unique_ptr<Ast::ast_node> parse_factor();

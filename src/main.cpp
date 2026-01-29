@@ -24,6 +24,7 @@ void print_ast(const Ast::ast_node* node, int indent = 0) {
         case Ast::node_type::FINALLY_STMT: type_str = "FINALLY_STMT"; break;
         case Ast::node_type::FUNCTION_DEF: type_str = "FUNCTION_DEF"; break;
         case Ast::node_type::SELF_KEYWORD: type_str = "SELF_KEYWORD"; break;
+        case Ast::node_type::DOT: type_str = "DOT"; break;
         case Ast::node_type::LAMBDA_EXPRESSION: type_str = "LAMBDA_EXPRESSION"; break;
         case Ast::node_type::LAMBDA_PARAM_LIST: type_str = "LAMBDA_PARAM_LIST"; break; 
         case Ast::node_type::LAMBDA_STMT: type_str = "LAMBDA_STMT"; break;  

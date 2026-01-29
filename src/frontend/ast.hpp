@@ -52,11 +52,11 @@ namespace Ast {
         FUNCTION_DEF,
         METHOD_DEF,
         CLASS_DEF,
-        SELF,
         PARAMETER,
         PARAMETER_LIST,
         PARAMETER_DICT,
-        
+        DOT,
+
         POWER_OP,
         EQUALITY_OP,
         BINARY_OP,

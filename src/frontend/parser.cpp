@@ -26,10 +26,6 @@ Parser::parser_class::parser_class(Lexical::lexical_class& lexer) : current_pos(
     tokens = lexer.tokenize();
 }
 
-Token::token_class& Parser::parser_class::previous_token() {
-    return tokens[--current_pos];
-}
-
 Token::token_class& Parser::parser_class::current_token() {
     return tokens[current_pos];
 }
@@ -49,20 +45,14 @@ bool Parser::parser_class::is_at_end() {
 std::unique_ptr<Ast::ast_node> Parser::parser_class::parse() {
     auto root = std::make_unique<Ast::ast_node>(Ast::node_type::PROGRAM);
 
-   //try {
-        while (!is_at_end()) {
-            auto stmt = parse_statement();
-            if (stmt) {
-                root->add_child(std::move(stmt));
-            }
+    while (!is_at_end()) {
+        auto stmt = parse_statement();
+        if (stmt) {
+            root->add_child(std::move(stmt));
         }
-    //} catch (const std::exception& e) {
-    //   std::cerr << "Parse error: " << e.what() << std::endl;
-    // throw;
-    //}
+    }
 
     ast_tree.set_root(std::move(root));
-
     return nullptr;
 }
 
@@ -120,19 +110,6 @@ std::unique_ptr<Ast::ast_node> Parser::parser_class::parse_expression_types() {
             consume(Token::token_type::IDENTIFIER);
             break;
 
-        /* 
-        Todo!
-        // Make sure that you fix the self keyowrd so that assigment operators can identify self.world = world 
-        not .world = world
-         */
-        case Token::token_type::KEYWORD_SELF: 
-            node = std::make_unique<Ast::ast_node>(
-                Ast::node_type::SELF,
-                Token::token_class{Token::token_type::DEFAULT, current_token().value, current_token().line, current_token().column}
-            );
-            consume(Token::token_type::KEYWORD_SELF);
-            break;
-
         case Token::token_type::LBRACKET: 
             node = parse_list();
             break;
@@ -142,12 +119,12 @@ std::unique_ptr<Ast::ast_node> Parser::parser_class::parse_expression_types() {
             node = parse_dict();
             break;
         
-        case Token::token_type::DOT:
-            node = parse_attribute_expr();
-            break;
-        
         case Token::token_type::LPAREN:
             node = parse_call_expr();
+            break;
+
+        case Token::token_type::KEYWORD_SELF:
+            node = parse_self();
             break;
 
         default:
@@ -160,16 +137,22 @@ std::unique_ptr<Ast::ast_node> Parser::parser_class::parse_expression_types() {
 
 std::unique_ptr<Ast::ast_node> Parser::parser_class::parse_attribute_expr() {
     consume(Token::token_type::DOT);    
+    auto attr_node = std::make_unique<Ast::ast_node>(
+                Ast::node_type::DOT,
+                Token::token_class{Token::token_type::DOT, current_token().value, current_token().line, current_token().column});
+    
 
     if (!match(Token::token_type::IDENTIFIER)) {
         throw std::runtime_error("Expected identifier after '.' at line " +
                                 std::to_string(current_token().line));
     }
     
-    auto attr_node = std::make_unique<Ast::ast_node>(
+    auto attr_expr = std::make_unique<Ast::ast_node>(
                 Ast::node_type::ATTRIBUTE_EXPR,
                 Token::token_class{Token::token_type::DEFAULT, current_token().value, current_token().line, current_token().column});
-    consume(Token::token_type::IDENTIFIER);
+    consume();
+
+    attr_node->add_child(std::move(attr_expr));
 
     return attr_node;
 }
@@ -200,7 +183,7 @@ std::unique_ptr<Ast::ast_node> Parser::parser_class::parse_call_expr() {
         }
     }
 
-    consume(Token::token_type::RPAREN);
+    consume();
     call_node->add_child(std::move(arg_list));
 
     return call_node;
@@ -423,6 +406,21 @@ std::unique_ptr<Ast::ast_node> Parser::parser_class::parse_statement() {
         default:
             return parse_assignment();
     }
+}
+
+std::unique_ptr<Ast::ast_node> Parser::parser_class::parse_self() {
+    auto self_node = std::make_unique<Ast::ast_node>(
+        Ast::node_type::SELF_KEYWORD,
+        Token::token_class{Token::token_type::DEFAULT, current_token().value, current_token().line, current_token().column}
+    );
+    consume(Token::token_type::KEYWORD_SELF);
+
+    if (match(Token::token_type::DOT)) {
+        auto attr_node = parse_attribute_expr();
+        self_node->add_child(std::move(attr_node));
+    }
+
+    return self_node;
 }
 
 std::unique_ptr<Ast::ast_node> Parser::parser_class::parse_try() {
