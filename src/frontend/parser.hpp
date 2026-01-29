@@ -2,6 +2,9 @@
 #define PARSER_HPP 
 
 #include <utility>
+#include <string>
+#include <format>
+#include <iostream>
 
 #include "frontend/ast.hpp"
 #include "frontend/lexical.hpp"
@@ -34,9 +37,34 @@ namespace Parser {
             Token::token_class& previous_token();
 
             bool match(const Token::token_type& type);
-            bool is_at_end();            
 
-            bool consume(const Token::token_type& type);
+            template <typename TokenType, typename ... Rest> requires (std::same_as<TokenType, Token::token_type>)
+            bool match(TokenType first_type, Rest ... more_types) noexcept {
+                const auto current_tag = tokens.at(current_pos).type;
+                return ((current_tag == first_type) || ... || (current_tag == more_types));
+            }
+
+            bool is_at_end();
+
+            template <typename ... TokenTypes>
+            void consume(TokenTypes ... types) {
+                if constexpr (sizeof...(types) < 1) {
+                    current_pos++;
+                    return;
+                } else {
+                    if (const auto& current_token_ref = tokens.at(current_pos); !match(types...)) {
+                        throw std::runtime_error(
+                            std::format(
+                                "Parse Error at source:{}:{}: Unexpected token.\n",
+                                current_token_ref.line,
+                                current_token_ref.column
+                            )
+                        );
+                    }
+                }
+
+                current_pos++;
+            }
 
              // Something that produces a value 
             std::unique_ptr<Ast::ast_node> parse_expression_types();
