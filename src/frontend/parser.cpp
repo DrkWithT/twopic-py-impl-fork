@@ -10,7 +10,7 @@ parse_program()        - Top level
 parse_statement()      - Statement dispatcher
 parse_assignment()     - Assignments
 parse_equality()       - Equality (==, !=)
-parse_comparator()     - Comparison (<, >, <=, >=) (right-associative)
+parse_comparator()     - Comparison (<, >, <=, >=)
 parse_bitwise()        - Bitwise ops (|, ^, &, <<, >>)
 parse_term()           - Addition / subtraction
 parse_factor()         - Multiplication / division
