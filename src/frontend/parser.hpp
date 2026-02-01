@@ -6,6 +6,8 @@
 #include <format>
 #include <iostream>
 
+#include <fmt/core.h>
+
 #include "frontend/ast.hpp"
 #include "frontend/lexical.hpp"
 
@@ -33,8 +35,17 @@ namespace Parser {
             std::size_t current_pos {};
             Ast::ast_class ast_tree {};
             Token::token_class& current_token();
+            int m_error_count;
 
             bool match(const Token::token_type& type);
+
+            // Might be useful to track the amount of errors
+            void debug_syntax_error() {
+                m_error_count++;
+                throw std::runtime_error {
+                    fmt::format("Syntax Error at: line {} column {} ", std::to_string(current_token().line), std::to_string(current_token().column)) 
+                };
+            }
 
             // Special thanks to DerkT for fixing up my code!
             template <typename TokenType, typename ... Rest> requires (std::same_as<TokenType, Token::token_type>)

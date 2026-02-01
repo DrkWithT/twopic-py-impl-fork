@@ -60,7 +60,7 @@ void Parser::parser_class::consume_newline() {
     consume(Token::token_type::COLON);
     consume(Token::token_type::NEWLINE);
     if (!match(Token::token_type::INDENT)) {
-        throw std::runtime_error("Expected indentation after ':' at line " + std::to_string(current_token().line));
+        debug_syntax_error();
     }
     consume(Token::token_type::INDENT);
 }
@@ -69,7 +69,7 @@ void Parser::parser_class::consume_newline() {
 void Parser::parser_class::consume_line() {
    consume(Token::token_type::NEWLINE);
     if (!match(Token::token_type::INDENT)) {
-        throw std::runtime_error("Expected indentation at line " + std::to_string(current_token().line));
+        debug_syntax_error();
     }
    consume(Token::token_type::INDENT);
 }
@@ -128,8 +128,7 @@ std::unique_ptr<Ast::ast_node> Parser::parser_class::parse_expression_types() {
             break;
 
         default:
-            throw std::runtime_error("Unexpected token: " + current_token().value +
-                                   " at line " + std::to_string(current_token().line));
+            debug_syntax_error();
     }
 
     return node;
@@ -143,8 +142,7 @@ std::unique_ptr<Ast::ast_node> Parser::parser_class::parse_attribute_expr() {
     
 
     if (!match(Token::token_type::IDENTIFIER)) {
-        throw std::runtime_error("Expected identifier after '.' at line " +
-                                std::to_string(current_token().line));
+        debug_syntax_error();
     }
     
     auto attr_expr = std::make_unique<Ast::ast_node>(
@@ -595,9 +593,9 @@ std::unique_ptr<Ast::ast_node> Parser::parser_class::parse_function_def() {
     );
     
     if (!match(Token::token_type::IDENTIFIER)) {
-        throw std::runtime_error("Expected function name at line " +
-                               std::to_string(current_token().line));
+        debug_syntax_error();
     } 
+
     consume(Token::token_type::IDENTIFIER);
     
     consume(Token::token_type::LPAREN);       
@@ -699,8 +697,7 @@ std::unique_ptr<Ast::ast_node> Parser::parser_class::parse_method() {
     );
 
     if (!match(Token::token_type::IDENTIFIER) && !match(Token::token_type::KEYWORD_INIT)) {
-        throw std::runtime_error("Expected method name at line " +
-                               std::to_string(current_token().line));
+        debug_syntax_error();
     }
 
     if (match(Token::token_type::KEYWORD_INIT)) {
@@ -717,8 +714,7 @@ std::unique_ptr<Ast::ast_node> Parser::parser_class::parse_method() {
     );
 
     if (!match(Token::token_type::KEYWORD_SELF)) {
-        throw std::runtime_error("Class method must have 'self' as first parameter at line " +
-                               std::to_string(current_token().line));
+        debug_syntax_error();
     }
 
     auto self_param = std::make_unique<Ast::ast_node>(
