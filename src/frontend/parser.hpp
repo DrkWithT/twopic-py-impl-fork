@@ -30,12 +30,11 @@ Expr → Base [ op Expr ]   (uses recursion, not loop)
 
 namespace Parser {
     /* I decided upon a recursive descent appoarch */
-
-    /* Should make is a vector of bools */
-    static bool valid_constructor = false;
-
     class parser_class {
         private:
+            /* Should make is a vector of bools */
+            bool valid_constructor = false;
+            
             std::vector<Token::token_class> tokens {};
             std::size_t current_pos {};
             std::size_t m_previous_pos {};
