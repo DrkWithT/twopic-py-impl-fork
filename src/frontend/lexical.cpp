@@ -5,7 +5,7 @@
 
 #include "frontend/lexical.hpp"
 
-Lexical::lexical_class::lexical_class(const std::string& source) : position(0), source(source), line(1), column(1) {
+Lexical::lexical_class::lexical_class(const std::string& source) : m_position(0), m_source(source), m_line(1), m_column(1) {
     indent.emplace_back(0);  
 
     predefined_keyword = {
@@ -69,8 +69,8 @@ std::string Lexical::read_file(std::string_view filename) {
 
 void Lexical::lexical_class::handle_indentation(std::vector<Token::token_class>& tokens, std::size_t start_line) {
     std::size_t spaces = 0;
-    while (position < source.length() && (source[position] == ' ' || source[position] == '\t')) {
-        if (source[position] == '\t') {
+    while (m_position < m_source.length() && (m_source[m_position] == ' ' || m_source[m_position] == '\t')) {
+        if (m_source[m_position] == '\t') {
             spaces += 4;  
         } else {
             spaces++;
@@ -78,7 +78,7 @@ void Lexical::lexical_class::handle_indentation(std::vector<Token::token_class>&
         next_token();
     }
 
-    if (position >= source.length() || source[position] == '\n') {
+    if (m_position >= m_source.length() || m_source[m_position] == '\n') {
         return;
     }
 
@@ -94,47 +94,41 @@ void Lexical::lexical_class::handle_indentation(std::vector<Token::token_class>&
         }
 
         if (indent.empty() || indent.back() != spaces) {
-            throw std::runtime_error("Indentation error at line " + std::to_string(line));
+            throw std::runtime_error("Indentation error at line " + std::to_string(m_line));
         }
     }
 }
 
 bool Lexical::lexical_class::is_whitespace() const {
-    if (position >= source.length()) {
+    if (m_position >= m_source.length()) {
         return false;
     }
 
-    char c = source[position];
+    char c = m_source[m_position];
     return c == ' ' || c == '\t'|| c == '\r';
 }
 
 bool Lexical::lexical_class::is_string() const {
-    if (position >= source.length()) {
+    if (m_position >= m_source.length()) {
         return false;
     }
 
-    char c = source[position];
+    char c = m_source[m_position];
     return c == '"' || c == '\'';
 }
 
 bool Lexical::lexical_class::is_float() const {
-    if (position >= source.length()) {
+    if (m_position >= m_source.length()) {
         return false;
     }
 
-    std::size_t temp_pos { position };
-    while (temp_pos < source.length() && std::isdigit(source[temp_pos])) {
+    std::size_t temp_pos { m_position };
+    while (temp_pos < m_source.length() && std::isdigit(m_source[temp_pos])) {
         temp_pos++;
     }
 
-    if (temp_pos < source.length() && source[temp_pos] == '.') {
-        if (temp_pos + 1 < source.length() && std::isdigit(source[temp_pos + 1])) {
-            return true; 
-        }
-    }
-
-    if (source[position] == '.') {
-        if (position + 1 < source.length() && std::isdigit(source[position + 1])) {
+    if (m_source[m_position] == '.') {
+        if (m_position + 1 < m_source.length() && std::isdigit(m_source[m_position + 1])) {
             return true; 
         }
     }
@@ -143,35 +137,35 @@ bool Lexical::lexical_class::is_float() const {
 }
 
 bool Lexical::lexical_class::is_integer() const {
-    if (position >= source.length()) {
+    if (m_position >= m_source.length()) {
         return false;
     }
-
-    if (!std::isdigit(source[position])) {
+    
+    if (std::isdigit(m_source[m_position])) {
+        return true;
+    } else {
         return false;
     }
-
-    return std::isdigit(source[position]); 
 }
 
 bool Lexical::lexical_class::is_identifier() const {
-     if (position >= source.length()) {
+     if (m_position >= m_source.length()) {
         return false;
     }
 
-    char c = source[position];
+    char c = m_source[m_position];
     return std::isalpha(c) || c == '_';
 }
 
 void Lexical::lexical_class::next_token() {
-    if (position < source.length()) {
-        if (source[position] == '\n') {
-            line++;
-            column = 0;
+    if (m_position < m_source.length()) {
+        if (m_source[m_position] == '\n') {
+            m_line++;
+            m_column = 0;
         } else {
-            column++;
+            m_column++;
         }
-        position++;
+        m_position++;
     }
 }
 
@@ -180,11 +174,11 @@ std::vector<Token::token_class> Lexical::lexical_class::tokenize() {
 
     bool at_line_start = true;  
 
-    while (position < source.length()) {
-        std::size_t start_line = line;
-        std::size_t start_column = column;
+    while (m_position < m_source.length()) {
+        std::size_t start_line = m_line;
+        std::size_t start_column = m_column;
 
-        if (at_line_start && source[position] != '\n') {
+        if (at_line_start && m_source[m_position] != '\n') {
             handle_indentation(tokens, start_line);
             at_line_start = false;
             continue;
@@ -195,7 +189,7 @@ std::vector<Token::token_class> Lexical::lexical_class::tokenize() {
             continue;
         }
 
-        if (source[position] == '\n') {
+        if (m_source[m_position] == '\n') {
             tokens.push_back({Token::token_type::NEWLINE, "\n", start_line, start_column});
             next_token();
             at_line_start = true;  
@@ -203,45 +197,45 @@ std::vector<Token::token_class> Lexical::lexical_class::tokenize() {
         }
 
         if (is_float()) {
-            std::size_t start = position;
+            std::size_t start = m_position;
 
-            while (position < source.length() && std::isdigit(source[position])) {
+            while (m_position < m_source.length() && std::isdigit(m_source[m_position])) {
                 next_token();
             }
             
-            if (position < source.length() && source[position] == '.') {
+            if (m_position < m_source.length() && m_source[m_position] == '.') {
                 next_token();
             }
 
-            while (position < source.length() && std::isdigit(source[position])) {
+            while (m_position < m_source.length() && std::isdigit(m_source[m_position])) {
                 next_token();
             }
 
-            std::string num(source.substr(start, position - start));
+            std::string num(m_source.substr(start, m_position - start));
             tokens.push_back({Token::token_type::FLOAT_LITERAL, num, start_line, start_column});
             continue;
         }        
 
         if (is_integer()) {
-            std::size_t start = position;
-            while (position < source.length() && std::isdigit(source[position])) {
+            std::size_t start = m_position;
+            while (m_position < m_source.length() && std::isdigit(m_source[m_position])) {
                 next_token();
             }
 
-            std::string num(source.substr(start, position - start));
+            std::string num(m_source.substr(start, m_position - start));
             tokens.push_back({Token::token_type::INTEGER_LITERAL, num, start_line, start_column});
             continue;
         }
 
         if (is_string()) {
-            char quote = source[position];
+            char quote = m_source[m_position];
             next_token(); 
-            std::size_t start = position;
+            std::size_t start = m_position;
 
-            while (position < source.length() && source[position] != quote) {
-                if (source[position] == '\\') {
+            while (m_position < m_source.length() && m_source[m_position] != quote) {
+                if (m_source[m_position] == '\\') {
                     next_token(); 
-                    if (position < source.length()) {
+                    if (m_position < m_source.length()) {
                         next_token(); 
                     }
                 } else {
@@ -249,8 +243,8 @@ std::vector<Token::token_class> Lexical::lexical_class::tokenize() {
                 }
             }
 
-            std::string str(source.substr(start, position - start));
-            if (position < source.length()) {
+            std::string str(m_source.substr(start, m_position - start));
+            if (m_position < m_source.length()) {
                 next_token(); 
             }
 
@@ -259,13 +253,13 @@ std::vector<Token::token_class> Lexical::lexical_class::tokenize() {
         }
 
         if (is_identifier()) {
-            std::size_t start = position;
+            std::size_t start = m_position;
 
-            while (position < source.length() && (std::isalnum(source[position]) || source[position] == '_')) {
+            while (m_position < m_source.length() && (std::isalnum(m_source[m_position]) || m_source[m_position] == '_')) {
                 next_token();
             }
 
-            std::string identifier(source.substr(start, position - start));
+            std::string identifier(m_source.substr(start, m_position - start));
 
             auto it = predefined_keyword.find(identifier);
             if (it == predefined_keyword.end()) {
@@ -276,133 +270,133 @@ std::vector<Token::token_class> Lexical::lexical_class::tokenize() {
             continue;
         }
 
-        if (position + 2 < source.length()) {
-            std::string three_char = std::string(source.substr(position, 3));
+        if (m_position + 2 < m_source.length()) {
+            std::string three_char = std::string(m_source.substr(m_position, 3));
             if (three_char == "...") {
                 tokens.push_back({Token::token_type::ELLIPSIS, three_char, start_line, start_column});
-                position += 3;
-                column += 3;
+                m_position += 3;
+                m_column += 3;
                 continue;
             } else if (three_char == "//=") {
                 tokens.push_back({Token::token_type::DOUBLE_SLASH_EQUAL, three_char, start_line, start_column});
-                position += 3;
-                column += 3;
+                m_position += 3;
+                m_column += 3;
                 continue;
             } else if (three_char == "**=") {
                 tokens.push_back({Token::token_type::POWER_EQUAL, three_char, start_line, start_column});
-                position += 3;
-                column += 3;
+                m_position += 3;
+                m_column += 3;
                 continue;
             } else if (three_char == "<<=") {
                 tokens.push_back({Token::token_type::LEFT_SHIFT_EQUAL, three_char, start_line, start_column});
-                position += 3;
-                column += 3;
+                m_position += 3;
+                m_column += 3;
                 continue;
             } else if (three_char == ">>=") {
                 tokens.push_back({Token::token_type::RIGHT_SHIFT_EQUAL, three_char, start_line, start_column});
-                position += 3;
-                column += 3;
+                m_position += 3;
+                m_column += 3;
                 continue;
             }
         }
 
-        if (position + 1 < source.length()) {
-            std::string two_char = std::string(source.substr(position, 2));
+        if (m_position + 1 < m_source.length()) {
+            std::string two_char = std::string(m_source.substr(m_position, 2));
 
             if (two_char == "//") {
                 tokens.push_back({Token::token_type::DOUBLE_SLASH, two_char, start_line, start_column});
-                position += 2;
-                column += 2;
+                m_position += 2;
+                m_column += 2;
                 continue;
             } else if (two_char == "**") {
                 tokens.push_back({Token::token_type::POWER, two_char, start_line, start_column});
-                position += 2;
-                column += 2;
+                m_position += 2;
+                m_column += 2;
                 continue;
             } else if (two_char == "<=") {
                 tokens.push_back({Token::token_type::LESS_EQUAL, two_char, start_line, start_column});
-                position += 2;
-                column += 2;
+                m_position += 2;
+                m_column += 2;
                 continue;
             } else if (two_char == ">=") {
                 tokens.push_back({Token::token_type::GREATER_EQUAL, two_char, start_line, start_column});
-                position += 2;
-                column += 2;
+                m_position += 2;
+                m_column += 2;
                 continue;
             } else if (two_char == "==") {
                 tokens.push_back({Token::token_type::DOUBLE_EQUAL, two_char, start_line, start_column});
-                position += 2;
-                column += 2;
+                m_position += 2;
+                m_column += 2;
                 continue;
             } else if (two_char == "!=") {
                 tokens.push_back({Token::token_type::NOT_EQUAL, two_char, start_line, start_column});
-                position += 2;
-                column += 2;
+                m_position += 2;
+                m_column += 2;
                 continue;
             } else if (two_char == "+=") {
                 tokens.push_back({Token::token_type::PLUS_EQUAL, two_char, start_line, start_column});
-                position += 2;
-                column += 2;
+                m_position += 2;
+                m_column += 2;
                 continue;
             } else if (two_char == "-=") {
                 tokens.push_back({Token::token_type::MINUS_EQUAL, two_char, start_line, start_column});
-                position += 2;
-                column += 2;
+                m_position += 2;
+                m_column += 2;
                 continue;
             } else if (two_char == "*=") {
                 tokens.push_back({Token::token_type::STAR_EQUAL, two_char, start_line, start_column});
-                position += 2;
-                column += 2;
+                m_position += 2;
+                m_column += 2;
                 continue;
             } else if (two_char == "/=") {
                 tokens.push_back({Token::token_type::SLASH_EQUAL, two_char, start_line, start_column});
-                position += 2;
-                column += 2;
+                m_position += 2;
+                m_column += 2;
                 continue;
             } else if (two_char == "%=") {
                 tokens.push_back({Token::token_type::PERCENT_EQUAL, two_char, start_line, start_column});
-                position += 2;
-                column += 2;
+                m_position += 2;
+                m_column += 2;
                 continue;
             } else if (two_char == "@=") {
                 tokens.push_back({Token::token_type::AT_EQUAL, two_char, start_line, start_column});
-                position += 2;
-                column += 2;
+                m_position += 2;
+                m_column += 2;
                 continue;
             } else if (two_char == "&=") {
                 tokens.push_back({Token::token_type::AMPERSAND_EQUAL, two_char, start_line, start_column});
-                position += 2;
-                column += 2;
+                m_position += 2;
+                m_column += 2;
                 continue;
             } else if (two_char == "|=") {
                 tokens.push_back({Token::token_type::PIPE_EQUAL, two_char, start_line, start_column});
-                position += 2;
-                column += 2;
+                m_position += 2;
+                m_column += 2;
                 continue;
             } else if (two_char == "^=") {
                 tokens.push_back({Token::token_type::CARET_EQUAL, two_char, start_line, start_column});
-                position += 2;
-                column += 2;
+                m_position += 2;
+                m_column += 2;
                 continue;
             } else if (two_char == ":=") {
                 tokens.push_back({Token::token_type::WALRUS, two_char, start_line, start_column});
-                position += 2;
-                column += 2;
+                m_position += 2;
+                m_column += 2;
                 continue;
             } else if (two_char == "->") {
                 tokens.push_back({Token::token_type::ARROW, two_char, start_line, start_column});
-                position += 2;
-                column += 2;
+                m_position += 2;
+                m_column += 2;
                 continue;
             } else if (two_char == "<<") {
                 tokens.push_back({Token::token_type::LEFT_SHIFT, two_char, start_line, start_column});
-                position += 2;
-                column += 2;
+                m_position += 2;
+                m_column += 2;
                 continue;
             } else if (two_char == ">>") {
                 tokens.push_back({Token::token_type::RIGHT_SHIFT, two_char, start_line, start_column});
-                position += 2;
-                column += 2;
+                m_position += 2;
+                m_column += 2;
                 continue;
             }
         }
@@ -410,7 +404,7 @@ std::vector<Token::token_class> Lexical::lexical_class::tokenize() {
         Token::token_type type;
         bool matched = true;
 
-        char current = source[position];
+        char current = m_source[m_position];
         switch (current) {
             case '+': type = Token::token_type::PLUS; break;
             case '-': type = Token::token_type::MINUS; break;
@@ -452,10 +446,10 @@ std::vector<Token::token_class> Lexical::lexical_class::tokenize() {
 
     while (indent.size() > 1) {
         indent.pop_back();
-        tokens.push_back({Token::token_type::DEDENT, "", line, column});
+        tokens.push_back({Token::token_type::DEDENT, "", m_line, m_column});
     }
 
-    tokens.push_back({Token::token_type::EOF_TOKEN, "", line, column});
+    tokens.push_back({Token::token_type::EOF_TOKEN, "", m_line, m_column});
 
     return tokens;
 }

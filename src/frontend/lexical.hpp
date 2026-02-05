@@ -18,14 +18,13 @@ namespace Lexical {
     std::string read_file(std::string_view filename);
     class lexical_class {
         private:
-            std::size_t position {};
-            std::string source {};
-            std::size_t line {};
-            std::size_t column {};
+            std::size_t m_position {};
+            std::string m_source {};
+            std::size_t m_line {};
+            std::size_t m_column {};
 
             std::unordered_map<std::string, Token::token_type> predefined_keyword {};
             std::vector<std::size_t> indent {};
-
             void next_token();
              // Variable, Classes, etc etc names  
             void handle_indentation(std::vector<Token::token_class>& tokens, std::size_t start_line);
