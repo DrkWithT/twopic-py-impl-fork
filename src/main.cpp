@@ -33,6 +33,9 @@ int main(int argc, char* argv[]) {
 
         BytePrinter::print_bytecode(bytecode);
 
+        // actually this is useless but I'll add it
+        fmt::print("size of total python bytecode, {}\n", bytecode.instructions.size());
+
         fmt::print("\n=== ByteCode End ===\n");
 
        /*  fmt::print("\n=== ABSTRACT SYNTAX TREE ===\n");
