@@ -48,6 +48,7 @@ namespace TwoPyOpByteCode {
 
     using Value = std::variant<std::monostate, long, double, std::string, TwoObject::RuntimeDetection>;
 
+    /* This would be global bytecode lists */
     struct FullByteCode {
         std::vector<ByteCode> instructions;
         std::vector<Value> constants_pool;
@@ -56,7 +57,9 @@ namespace TwoPyOpByteCode {
 
     class chunk_class {
         private:
-            FullByteCode m_bytecode {};
+            FullByteCode m_global_bytecode {};
+            //FullByteCode m_other_bytecode {};
+
             const Ast::Program& m_program;
 
             void disassemble_instruction(const Ast::StmtPtr& stmt);

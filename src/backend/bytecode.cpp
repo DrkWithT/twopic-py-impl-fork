@@ -17,7 +17,7 @@ FullByteCode chunk_class::disassemble_program() {
     for (const auto& stmt : m_program.statements) {
         disassemble_instruction(stmt);
     }
-    return m_bytecode;
+    return m_global_bytecode;
 }
 
 void chunk_class::disassemble_instruction(const Ast::StmtPtr& stmt) {
@@ -36,7 +36,7 @@ void chunk_class::disassemble_stmt(const Ast::StmtNode& stmt) {
         auto& func_stmt = std::get<Ast::FunctionDef>(stmt.node);
     } else if (std::holds_alternative<Ast::ReturnStmt>(stmt.node)) {
         auto& return_stmt = std::get<Ast::ReturnStmt>(stmt.node);
-        m_bytecode.instructions.push_back({OpCode::RETURN});
+        m_global_bytecode.instructions.push_back({OpCode::RETURN});
     }
 }
 
@@ -45,10 +45,10 @@ void chunk_class::disassemble_expr(const Ast::ExprNode& expr) {
         auto& lits = std::get<Ast::Literals>(expr.node);
         if (std::holds_alternative<Ast::IntegerLiteral>(lits)) {
             auto& integer = std::get<Ast::IntegerLiteral>(lits);
-            m_bytecode.constants_pool.push_back(std::stol(integer.token.value));
-            m_bytecode.instructions.push_back({
+            m_global_bytecode.constants_pool.push_back(std::stol(integer.token.value));
+            m_global_bytecode.instructions.push_back({
                 OpCode::LOAD_CONSTANT,
-                static_cast<std::uint8_t>(m_bytecode.constants_pool.size() - 1)
+                static_cast<std::uint8_t>(m_global_bytecode.constants_pool.size() - 1)
             });
         }
 
@@ -59,10 +59,10 @@ void chunk_class::disassemble_expr(const Ast::ExprNode& expr) {
             disassemble_expr(*assign.value);
             auto* ident = std::get_if<Ast::Identifier>(&assign.target->node);
             if (ident) {
-                m_bytecode.vars_pool.push_back(ident->token.value);
-                m_bytecode.instructions.push_back({
+                m_global_bytecode.vars_pool.push_back(ident->token.value);
+                m_global_bytecode.instructions.push_back({
                     OpCode::STORE_VARIABLE,
-                    static_cast<std::uint8_t>(m_bytecode.vars_pool.size() - 1)
+                    static_cast<std::uint8_t>(m_global_bytecode.vars_pool.size() - 1)
                 });
             }
         }

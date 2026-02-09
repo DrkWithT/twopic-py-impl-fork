@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 
+/* Each of these would be local bytecode scope */
 namespace TwoObject {
     enum class RuntimeDetection {
         FUNCTION,
@@ -19,6 +20,7 @@ namespace TwoObject {
         public:
             std::string name;
             std::vector<std::string> parmas;
+            TwoPyOpByteCode::FullByteCode bytecode;
             function_object() {
                 runtime_type = RuntimeDetection::FUNCTION;
             }
