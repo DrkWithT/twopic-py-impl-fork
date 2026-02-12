@@ -1,16 +1,15 @@
-#ifndef OPCODE_HPP 
-#define OPCODE_HPP
+#ifndef TWOPY_BYTECODE_HPP 
+#define TWOPY_BYTECODE_HPP
 
 #include <cstddef>
+#include <optional>
+#include <string>
 #include <vector>
-#include <variant>
-#include <deque>
-#include <memory>
+#include <map>
 
-#include "frontend/ast.hpp"
-#include "backend/objects.hpp"
+#include "backend/value.hpp"
 
-namespace TwoPyOpByteCode {
+namespace TwoPy::Backend {
     /* 
     Opcode (add, subtract, jump, whatever)
     Vars/Constant (for your STORE_VARIABLE and LOAD_CONSTANT)
@@ -39,42 +38,33 @@ namespace TwoPyOpByteCode {
         LOAD_CONSTANT,
     };
 
-    //  Argument used as an index to map to a certain consts or vars pool 
-
     /* Inside Python's bytecode 3.6 documentation. Use 2 bytes for each instruction. Previously the number of bytes varied by instruction.*/
-    struct ByteCode {
-        OpCode opcode;
-        std::uint8_t argument;
+    struct Instruction {
+        OpCode opcode;          // VM opcode
+        std::uint8_t argument;  // index to a certain constant or local variable slot
     };
 
-    using Value = std::variant<std::monostate, long, double, std::string, std::shared_ptr<TwoObject::function_object>>;
-
-    struct FullByteCode {
-        std::vector<ByteCode> instructions;
-        std::vector<Value> constants_pool;
-        std::vector<std::string> vars_pool;
+    struct Chunk {
+        std::vector<Instruction> code;
+        std::vector<Value> consts;
     };
 
-    class chunk_class {
-        private:
-            std::vector<std::shared_ptr<FullByteCode>> m_total_bytecode {};
-            std::shared_ptr<FullByteCode> m_curr_bytecode {};
-            std::shared_ptr<FullByteCode> m_prev_bytecode {};
+    struct Program {
+        std::string name;
+        std::vector<Chunk> chunks;
+    };
 
-            bool is_in_function = false;
+    class Emitter {
+    private:
+        /// TODO: add state to track names to constants / local slots, build the bytecode chunks, etc.
 
-            const Ast::Program& m_program;
+    public:
+        /// TODO: set up state to track names to constants / local slots, build the bytecode chunks, etc.
+        Emitter();
 
-            void disassemble_instruction(const Ast::StmtPtr& stmt);
-            void disassemble_expr(const Ast::ExprNode& expr);
-            void disassemble_stmt(const Ast::StmtNode& stmt);
+        /// Add AST to bytecode methods here. 
 
-            void disassemble_function_object(const Ast::FunctionDef& func_stmt);
-
-        public:
-            chunk_class(const Ast::Program& program);
-
-            std::vector<std::shared_ptr<FullByteCode>> disassemble_program();
+        [[nodiscard]] std::optional<Program> operator()();
     };
 }
 
