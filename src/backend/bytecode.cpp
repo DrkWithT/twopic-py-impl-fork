@@ -28,7 +28,7 @@ namespace TwoPy::Backend {
         try {
             disassemble_stmt(*stmt);
         } catch (const std::exception& e) {
-            fmt::print(stderr, "Error: {}\n", e.what());
+            fmt::print("Error: {}\n", e.what());
         }
     }
 
