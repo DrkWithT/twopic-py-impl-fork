@@ -9,6 +9,7 @@
 #include <map>
 #include <ranges>
 #include <algorithm>
+#include <any>
 
 #include "backend/value.hpp"
 #include "frontend/ast.hpp"
@@ -32,14 +33,18 @@ namespace TwoPy::Backend {
         MAKE_FUNCTION,
         CALL_FUNCTION,
         PUSH_NULL,		// Prepares the stack for a function call.
+
         BINARY_POWER,
+        BINARY_MODULO,
+        BINARY_FLOOR_DIVIDE,
 
         STORE_FAST, // Local vars
         STORE_NAME, // Stuff like Classes, Functions, Dicts, Lists, etc etc
 
-        COMPARE_OP,
+        COMPARE_OP, // != ==
 
-        POP_JUMP_IF_FALSE,
+        POP_JUMP_IF_FALSE, // AND stops if the first value is true
+        POP_JUMP_IF_TRUE, // OR stops if the first value is true
 
         LOAD_FAST,  // Local vars
         LOAD_NAME,  // Module-level (mirrors STORE_NAME)
@@ -56,7 +61,7 @@ namespace TwoPy::Backend {
         std::vector<Instruction> code;
         std::vector<Value> consts_pool;
         std::vector<std::string> names_pool;
-        std::size_t byte_offset;
+        std::size_t byte_offset; // instructions lists
     };
 
     struct ByteCodeProgram {
@@ -71,23 +76,25 @@ namespace TwoPy::Backend {
         bool is_in_function = false;
 
         std::map<std::string, std::uint8_t> global_vars {};
+        std::vector<std::size_t> m_pending_jumps {};
+        std::vector<std::size_t> m_truthy_jumps {};
 
         std::shared_ptr<Chunk> m_curr_chunk {};
 
         ByteCodeProgram m_bytecode_program {};     
 
-        // helper functions by ci 
-        std::size_t emit_jump(OpCode instruction) {
+        // helper functions by https://craftinginterpreters.com/
+        [[nodiscard]] std::size_t emit_jump(OpCode instruction) {
             m_curr_chunk->code.push_back({instruction, 0});
             m_curr_chunk->byte_offset += 2;
             return m_curr_chunk->byte_offset;
         }
 
         void patch_jump(std::size_t offset) {
-            std::size_t jump_instr_index = (offset - 2) / 2;
+            std::size_t jump_instr_index = (offset - 2) / 2; 
             m_curr_chunk->code[jump_instr_index].argument =
                 static_cast<std::uint8_t>(m_curr_chunk->byte_offset);
-        }       
+        }      
 
         void emit_return_none() {
             auto it = std::ranges::find_if(m_curr_chunk->consts_pool, [](const Value& v) {
@@ -122,15 +129,15 @@ namespace TwoPy::Backend {
 
         void disassemble_function_object(const TwoPy::Frontend::FunctionDef& function);
         void disassemble_callexpr_object(const TwoPy::Frontend::CallExpr& callee);
-
+        void disassemble_elif_stmt(const TwoPy::Frontend::ElifStmt& stmt);
         void disassemble_if_stmt(const TwoPy::Frontend::IfStmt& stmt);
         void disassemble_body_stmt(const TwoPy::Frontend::Block& blk);
         // pushing data to the stack
         void disassemble_identifier_expr(const TwoPy::Frontend::Identifier& iden);
         // popping data to the stack
         void disassemble_identifier_assignment_expr(const TwoPy::Frontend::Identifier& iden); 
-       /*  void disassemble_and_expr(const TwoPy::Frontend::AndOp& and);
-        void disassemble_or_expr(const TwoPy::Frontend::OrOp& or); */
+        void disassemble_and_expr(const TwoPy::Frontend::AndOp& p_and);
+        void disassemble_or_expr(const TwoPy::Frontend::OrOp& p_or);  
 
     public:
         compiler(const TwoPy::Frontend::Program& program);

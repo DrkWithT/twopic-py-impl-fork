@@ -55,9 +55,10 @@ namespace TwoPy::Backend {
     void compiler::disassemble_body_stmt(const TwoPy::Frontend::Block& blk) {
         for (const auto& s : blk.statements) {
             disassemble_instruction(s);
-            m_curr_chunk->code.push_back({OpCode::POP});            
+            m_curr_chunk->code.push_back({OpCode::POP});
+            m_curr_chunk->byte_offset += 2;
         }
-        
+
         emit_return_none();
     }
 
@@ -65,9 +66,50 @@ namespace TwoPy::Backend {
         disassemble_expr(*stmt.condition);
 
         auto jmp = emit_jump(OpCode::POP_JUMP_IF_FALSE);
+
+        for (auto tj : m_truthy_jumps) {
+            patch_jump(tj);
+        }
+        m_truthy_jumps.clear();
+
         disassemble_body_stmt(stmt.body);
+
         patch_jump(jmp);
+
+        for (auto pj : m_pending_jumps) {
+            patch_jump(pj);
+        }
+        m_pending_jumps.clear();
+
+        if (stmt.else_branch != nullptr) {
+            disassemble_body_stmt(stmt.else_branch->body);
+        }
+
+        for (const auto& stmt : stmt.elifs) {
+            disassemble_elif_stmt(stmt);
+        }
     }
+
+    void compiler::disassemble_elif_stmt(const TwoPy::Frontend::ElifStmt& stmt) {
+        disassemble_expr(*stmt.condition);
+
+        auto jmp = emit_jump(OpCode::POP_JUMP_IF_FALSE);
+
+        for (auto tj : m_truthy_jumps) {
+            patch_jump(tj);
+        }
+        m_truthy_jumps.clear();
+
+        disassemble_body_stmt(stmt.body);
+
+        patch_jump(jmp);
+
+        for (auto pj : m_pending_jumps) {
+            patch_jump(pj);
+        }
+        m_pending_jumps.clear();
+    }
+
 
     void compiler::disassemble_expr(const TwoPy::Frontend::ExprNode& expr) {
         if (auto* callee = std::get_if<TwoPy::Frontend::CallExpr>(&expr.node)) {
@@ -135,8 +177,8 @@ namespace TwoPy::Backend {
         }
 
         if (auto* term = std::get_if<TwoPy::Frontend::TermOp>(&ops)) {
-            if (term->left) disassemble_expr(*term->left);
-            if (term->right) disassemble_expr(*term->right);
+            disassemble_expr(*term->left);
+            disassemble_expr(*term->right);
 
             std::string op = term->op.value;
             if (op == "+") {
@@ -150,8 +192,8 @@ namespace TwoPy::Backend {
         }
 
         if (auto* factor = std::get_if<TwoPy::Frontend::FactorOp>(&ops)) {
-            if (factor->left) disassemble_expr(*factor->left);
-            if (factor->right) disassemble_expr(*factor->right);
+            disassemble_expr(*factor->left);
+            disassemble_expr(*factor->right);
 
             std::string op = factor->op.value;
             if (op == "*") {
@@ -160,9 +202,34 @@ namespace TwoPy::Backend {
             } else if (op == "/") {
                 m_curr_chunk->code.push_back({OpCode::DIV});
                 m_curr_chunk->byte_offset += 2;
+            } else if (op == "%") {
+                m_curr_chunk->code.push_back({OpCode::BINARY_MODULO});
+                m_curr_chunk->byte_offset += 2;
+            } else if (op == "//") {
+                m_curr_chunk->code.push_back({OpCode::BINARY_FLOOR_DIVIDE});
+                m_curr_chunk->byte_offset += 2;
             }
+
             return;
         }
+
+        if (auto* compare = std::get_if<TwoPy::Frontend::EqualityOp>(&ops)) {
+            disassemble_expr(*compare->left);
+            disassemble_expr(*compare->right);
+
+            m_curr_chunk->code.push_back({OpCode::COMPARE_OP});
+            m_curr_chunk->byte_offset += 2;
+
+            return;
+        } 
+ 
+        if (auto* _and = std::get_if<TwoPy::Frontend::AndOp>(&ops)) {
+            disassemble_and_expr(*_and);
+        }
+
+        if (auto* _or = std::get_if<TwoPy::Frontend::OrOp>(&ops)) {
+            disassemble_or_expr(*_or);
+        } 
     }
 
     void compiler::disassemble_literals(const TwoPy::Frontend::Literals& lits) {
@@ -269,4 +336,20 @@ namespace TwoPy::Backend {
         m_curr_chunk->code.push_back({OpCode::CALL_FUNCTION, arg_count});
         m_curr_chunk->byte_offset += 2;
     }
+
+    void compiler::disassemble_and_expr(const TwoPy::Frontend::AndOp& p_and) {
+        disassemble_expr(*p_and.left);
+        std::size_t and_jump = emit_jump(OpCode::POP_JUMP_IF_FALSE);
+        m_pending_jumps.emplace_back(and_jump);
+
+        disassemble_expr(*p_and.right);
+    }
+
+    void compiler::disassemble_or_expr(const TwoPy::Frontend::OrOp& p_or) {
+        disassemble_expr(*p_or.left);
+        std::size_t truthy_jump = emit_jump(OpCode::POP_JUMP_IF_TRUE);
+        m_truthy_jumps.emplace_back(truthy_jump);
+
+        disassemble_expr(*p_or.right);
+    } 
 }

@@ -53,6 +53,7 @@ namespace TwoPy::Backend {
         noexcept (std::is_nothrow_constructible_v<hidden_data, NativeT>)
         : m_data (std::forward<NativeT>(native_value)) {}
 
+        /* Specific for ObjectBase where there might be a shared_ptr */
         explicit constexpr Value(py_object_ptr obj_ptr) noexcept
         : m_data(obj_ptr) {}
 
