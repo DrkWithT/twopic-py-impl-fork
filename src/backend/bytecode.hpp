@@ -72,12 +72,13 @@ namespace TwoPy::Backend {
     class compiler {
     private:
         const TwoPy::Frontend::Program& m_program;
-
-        bool is_in_function = false;
+        std::size_t m_scope_depth {};
 
         std::map<std::string, std::uint8_t> global_vars {};
-        std::vector<std::size_t> m_pending_jumps {};
-        std::vector<std::size_t> m_truthy_jumps {};
+        std::map<std::string, std::uint8_t> local_vars {};
+
+        std::vector<std::size_t> pending_jumps {};
+        std::vector<std::size_t> truthy_jumps {};
 
         std::shared_ptr<Chunk> m_curr_chunk {};
 
@@ -116,10 +117,16 @@ namespace TwoPy::Backend {
             m_curr_chunk->byte_offset += 2;
         }
 
-        void add_chunk_code(OpCode code, std::uint8_t arg = 0) {
-            m_curr_chunk->code.push_back({code, arg});            
+         /// TODO: I'll need to add detection for nested functions scoping
+        void init_scope() {
+            m_scope_depth++;
         }
 
+        void end_scope() {
+            m_scope_depth--;
+        }
+
+        /* Non helper functions */
         void disassemble_instruction(const TwoPy::Frontend::StmtPtr& stmt);
         void disassemble_stmt(const TwoPy::Frontend::StmtNode& stmt);
         void disassemble_expr(const TwoPy::Frontend::ExprNode& expr);
