@@ -15,7 +15,7 @@
 namespace TwoPy::Backend {
     enum class ValueTag : uint8_t {
         NONE,   // C++ std::monostate
-        BOOL,   // C++ long of 0 or 1
+        BOOL,   // C++ true or false
         INT,    // C++ long
         FLOAT,  // C++ double
         REF,    // Value reference
@@ -29,7 +29,8 @@ namespace TwoPy::Backend {
     class Value {
     public:
         using py_object_ptr = std::shared_ptr<ObjectBase>;
-        using hidden_data = std::variant<std::monostate, long, double, Reference, py_object_ptr>;
+        // craftinginterpreters suggests a tagged union
+        using hidden_data = std::variant<std::monostate, bool, long, double, Reference, py_object_ptr>;
     private:
         template <typename NativeType>
         struct native_type_tag {
@@ -66,6 +67,8 @@ namespace TwoPy::Backend {
                 return std::get<Reference>(m_data) != nullptr;
             } else if (std::holds_alternative<py_object_ptr>(m_data)) {
                 return std::get<py_object_ptr>(m_data) != nullptr;
+            } else if (std::holds_alternative<bool>(m_data)) {
+                return std::get<bool>(m_data) != false;
             }
             return false;
         }

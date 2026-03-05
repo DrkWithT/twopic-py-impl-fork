@@ -262,6 +262,16 @@ namespace TwoPy::Backend {
             m_curr_chunk->byte_offset += 2;
             return;
         }
+
+        if (auto* bool_lit = std::get_if<TwoPy::Frontend::BoolLiteral>(&lits)) {
+            m_curr_chunk->consts_pool.emplace_back(bool_lit->token.value == "True");
+            std::uint8_t const_index = static_cast<std::uint8_t>(m_curr_chunk->consts_pool.size() - 1);
+
+            m_curr_chunk->code.push_back({OpCode::LOAD_CONSTANT, const_index});
+            m_curr_chunk->byte_offset += 2;
+
+            return; 
+        }
     }
 
     /// TODO: Since I'm Lazy, I forgot to add STORE/LOAD_FAST for local vars 

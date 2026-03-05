@@ -52,6 +52,8 @@ namespace BytePrinter {
             return std::to_string(std::get<long>(data));
         } else if (std::holds_alternative<double>(data)) {
             return std::to_string(std::get<double>(data));
+        } else if (std::holds_alternative<bool>(data)) {
+            return std::get<bool>(data) ? "True" : "False";
         } else if (std::holds_alternative<Reference>(data)) {
             return "<ref>";
         } else if (std::holds_alternative<Value::py_object_ptr>(data)) {
