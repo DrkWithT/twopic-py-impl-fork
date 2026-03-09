@@ -1,7 +1,3 @@
-def add(x):
-    y = x + 1
-    return y
+x = 1
 
-y = 0
-
-add(y)
+print(x)

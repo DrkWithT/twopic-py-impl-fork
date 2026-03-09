@@ -1,37 +1,59 @@
 #ifndef VM_HPP
 #define VM_HPP
 
+#include <stack>
+#include <cstddef>
 #include <vector>
+#include <flat_map>
+#include <string>
+
 #include "backend/value.hpp"
 #include "backend/bytecode.hpp"
+
+/// NOTE: immutable accessor for impl. of __get__
+
+// Instruction Pointer 
+// Next instruction to execute
+// Controls program flow
+
+// Stack Pointer
+// Top of the stack 
+// Push/pop operations
+
+// Base Pointer
+// Start of the current stack frame
+// Access local variables & arguments
 
 namespace TwoPy::Backend {
     class VM {
     private:
-        // 1. Make a value stack, call frame stack, stack index, instruction pointer, status code, and more...
-        // 2. To start, pretend that PyFunctions are just readonly wrappers around a pointer into a Chunk? The VM just needs to enter its instruction pointer into that function code. Getting it working is 1st priority.
-
-        const ByteCodeProgram m_prgm {};
-
-        enum class ErrorCode : std::uint8_t {
+        enum class Result : std::uint8_t {
             OK,
-            ERROR,
+            RUNTIME_ERROR,
+            COMPILER_ERROR,
         };
 
-        struct ValueStack {
-            std::uint8_t m_caller_ret_ip;
+        const ByteCodeProgram& m_prgm {};
+        
+        std::size_t m_frame_count {};
+        
+        std::flat_map<std::string, Value> global_vars {};
+        std::flat_map<std::string, Value> local_vars {};
 
-            std::size_t m_callee_fp;
-            std::size_t m_caller_fp; 
-        };
+        // stores runtime consts/values 
+        std::stack<Value> vm_stack {};
+        std::vector<Instruction> m_instrutions {};
+
+        // Also called program counters 
+        std::size_t m_ip {};
+
+        // Base Pointer (EBP)
+        Chunk* m_bp {};
 
     public:
-        VM(const ByteCodeProgram& prgm);
+        VM(const ByteCodeProgram& prgm);        
 
-        /// TODO: implement opcodes & run.
-        
-        /// NOTE: runs the dispatch loop on the program's bytecode & returns true if execution was OK :)
-        [[nodiscard]] bool run();
+        Result run();
     };
 }
 

@@ -18,8 +18,6 @@ namespace BytePrinter {
     inline std::string opcode_to_string(OpCode op) {
         switch (op) {
             case OpCode::RETURN: return "RETURN";
-            case OpCode::CALL: return "CALL";
-            case OpCode::PRINT: return "PRINT";
             case OpCode::ADD: return "ADD";
             case OpCode::SUB: return "SUB";
             case OpCode::MUL: return "MUL";
@@ -109,7 +107,6 @@ namespace BytePrinter {
                 break;
 
             case OpCode::CALL_FUNCTION:
-            case OpCode::CALL:
                 fmt::print(" {:>3}  (arg count)", instr.argument);
                 break;
 

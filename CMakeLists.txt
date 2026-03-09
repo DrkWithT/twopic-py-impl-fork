@@ -21,16 +21,16 @@ target_sources(frontend PUBLIC ${PROJECT_SRC_DIR}/frontend/lexical.cpp ${PROJECT
 target_sources(frontend PUBLIC ${PROJECT_SRC_DIR}/print/ast_tree.hpp)
 target_link_libraries(frontend PUBLIC fmt::fmt)
 
-add_executable(lexical_analyzer)
-target_include_directories(lexical_analyzer PUBLIC ${PROJECT_SRC_DIR})
-target_sources(lexical_analyzer PRIVATE ${PROJECT_SRC_DIR}/main.cpp ${PROJECT_SRC_DIR}/backend/bytecode.cpp)
+add_executable(twopy)
+target_include_directories(twopy PUBLIC ${PROJECT_SRC_DIR})
+target_sources(twopy PRIVATE ${PROJECT_SRC_DIR}/main.cpp ${PROJECT_SRC_DIR}/backend/bytecode.cpp ${PROJECT_SRC_DIR}/backend/vm.cpp)
 
 # For working around a regression within my Homebrew LLVM 21.1.7 installs under Clang: (issue 235411) - DerkT
 if (APPLE AND LLVM_LIBRARY_DIR)
-    target_link_directories(lexical_analyzer PUBLIC "${LLVM_LIBRARY_DIR}/c++" PUBLIC ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
+    target_link_directories(twopy PUBLIC "${LLVM_LIBRARY_DIR}/c++" PUBLIC ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
 endif ()
 
-target_link_libraries(lexical_analyzer PRIVATE frontend fmt::fmt)
+target_link_libraries(twopy PRIVATE frontend fmt::fmt)
 
 message(STATUS "C++ Compiler: ${CMAKE_CXX_COMPILER}")
 message(STATUS "C++ Standard: ${CMAKE_CXX_STANDARD}")

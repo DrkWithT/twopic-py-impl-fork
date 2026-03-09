@@ -62,6 +62,10 @@ namespace TwoPy::Backend {
                 return ObjectTag::FUNCTION;
             }
 
+            [[nodiscard]] const std::string& name() const noexcept {
+                return m_name;
+            }
+
             /* Useful for printing out debug */
             [[nodiscard]] std::uint8_t get_chunk_index() const noexcept {
                 return m_chunk_index;

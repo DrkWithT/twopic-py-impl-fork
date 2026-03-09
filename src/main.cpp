@@ -9,6 +9,7 @@
 #include "print/ast_tree.hpp"   
 #include "print/python_byte.hpp"
 #include "backend/bytecode.hpp"
+#include "backend/vm.hpp"
 
 int main(int argc, char* argv[]) {
     if (argc < 2) {
@@ -16,8 +17,6 @@ int main(int argc, char* argv[]) {
         fmt::print(stderr, "Example: {} test.py\n", argv[0]);
         return 1;
     }
-
-    fmt::print("=== Parsing file: {} ===\n\n", argv[1]);
 
     try {
         const std::string& source_code = TwoPy::Frontend::read_file(argv[1]);
@@ -30,7 +29,11 @@ int main(int argc, char* argv[]) {
         TwoPy::Backend::compiler bytecode_compiler(program);
         TwoPy::Backend::ByteCodeProgram bytecode_program = bytecode_compiler.disassemble_program();
 
-        BytePrinter::disassemble_program(bytecode_program);
+        // BytePrinter::disassemble_program(bytecode_program);
+
+        TwoPy::Backend::VM py_vm(bytecode_program);
+
+        py_vm.run();
 
         // fmt::print("\n=== ABSTRACT SYNTAX TREE ===\n");
 

@@ -2,14 +2,12 @@ import dis
 
 code = """
 
-def add(x):
-    y = x + 1
-    return y
+x = 1
+y = 2
 
-y = 0
+z = x + y
 
-add(y)
-
+print(z)
 """
 
 dis.dis(code)

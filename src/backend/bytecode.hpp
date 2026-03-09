@@ -21,8 +21,6 @@ namespace TwoPy::Backend {
     */
     enum class OpCode : std::uint8_t {
         RETURN,
-        CALL,
-        PRINT,
         ADD,
         SUB,
         MUL,
@@ -145,7 +143,7 @@ namespace TwoPy::Backend {
         void disassemble_identifier_assignment_expr(const TwoPy::Frontend::Identifier& iden); 
         void disassemble_and_expr(const TwoPy::Frontend::AndOp& p_and);
         void disassemble_or_expr(const TwoPy::Frontend::OrOp& p_or);  
-
+        
     public:
         compiler(const TwoPy::Frontend::Program& program);
 

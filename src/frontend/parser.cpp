@@ -45,13 +45,17 @@ bool parser_class::is_at_end() {
 Program parser_class::parse() {
     Program program;
 
-    while (!is_at_end()) {
-        auto stmt = parse_statement();
-        if (stmt) {
-            program.statements.push_back(std::move(stmt));
+    try {
+        while (!is_at_end()) {
+            auto stmt = parse_statement();
+            if (stmt) {
+                program.statements.push_back(std::move(stmt));
+            }
         }
+    } catch (const std::exception& e) {
+        debug_syntax_error();
     }
-
+    
     return program;
 }
 
