@@ -33,7 +33,12 @@ int main(int argc, char* argv[]) {
 
         TwoPy::Backend::VM py_vm(bytecode_program);
 
-        py_vm.run();
+        auto result = py_vm.run();
+        if (result == TwoPy::Backend::VM::Result::RUNTIME_ERROR) {
+            throw std::runtime_error("You need more logic");
+        } else {
+            fmt::print("logic good");
+        }
 
         // fmt::print("\n=== ABSTRACT SYNTAX TREE ===\n");
 

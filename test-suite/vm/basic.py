@@ -10,5 +10,5 @@ print(y)
 x = 10
 print(x)
 
-x = u
+x = 1
 print(x)

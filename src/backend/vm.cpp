@@ -14,7 +14,6 @@ namespace TwoPy::Backend {
         while (m_ip < m_instrutions.size()) {
             Instruction instr = m_instrutions[m_ip];
             m_ip++;
-            try {
             switch (instr.opcode) {
                 case OpCode::RETURN: {
                     return Result::OK;
@@ -106,7 +105,7 @@ namespace TwoPy::Backend {
                         auto builtin = std::make_shared<FunctionPyObject>("print", std::vector<std::string>{}, 0);
                         vm_stack.push(Value(builtin));
                     } else {
-                        throw std::runtime_error("Bruh ur var has no value");
+                        return Result::RUNTIME_ERROR;
                     }
 
                     break;
@@ -140,9 +139,6 @@ namespace TwoPy::Backend {
 
                 default:
                     break;
-            }
-            } catch (const std::exception& e) {
-                fmt::print("Runtime error: {}\n", e.what());
             }
         }
         return Result::OK;

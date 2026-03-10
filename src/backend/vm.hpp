@@ -26,13 +26,13 @@
 
 namespace TwoPy::Backend {
     class VM {
-    private:
+    public:
         enum class Result : std::uint8_t {
             OK,
             RUNTIME_ERROR,
             COMPILER_ERROR,
         };
-
+    private:
         const ByteCodeProgram& m_prgm {};
         
         std::size_t m_frame_count {};
