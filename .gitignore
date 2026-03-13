@@ -4,3 +4,4 @@ lexical_analyzer
 .DS_Store
 .cache
 .clangd
+compile_commands.json
