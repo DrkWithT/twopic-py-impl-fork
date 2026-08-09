@@ -1,6 +1,6 @@
 #include "backend/vm.hpp"
 
-#include <fmt/core.h>
+#include <print>
 #include <stdexcept>
 
 namespace TwoPy::Backend {
@@ -130,10 +130,10 @@ namespace TwoPy::Backend {
                     if (auto* func = dynamic_cast<FunctionPyObject*>(obj.get())) {
                         if (func->name() == "print") {
                             for (std::size_t i = 0; i < args.size(); i++) {
-                                if (i > 0) fmt::print(" ");
-                                fmt::print("{}", args[i].to_string());
+                                if (i > 0) std::print(" ");
+                                std::print("{}", args[i].to_string());
                             }
-                            fmt::print("\n");
+                            std::print("\n");
                             vm_stack.push(Value{});
                         }
                     }

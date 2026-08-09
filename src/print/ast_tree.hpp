@@ -3,7 +3,7 @@
 
 #include <string>
 #include <variant>
-#include <fmt/core.h>
+#include <print>
 #include "frontend/ast.hpp"
 
 namespace AstPrinter {
@@ -12,7 +12,7 @@ namespace AstPrinter {
 
 inline void print_indent(int depth) {
     for (int i = 0; i < depth; ++i) {
-        fmt::print("  ");
+        std::print("  ");
     }
 }
 
@@ -28,116 +28,116 @@ inline void print_block(const Ast::Block& block, int depth);
 // Expression printers
 inline void print_expr_node(const Ast::IntegerLiteral& node, int depth) {
     print_indent(depth);
-    fmt::print("IntegerLiteral: {}\n", token_value(node.token));
+    std::print("IntegerLiteral: {}\n", token_value(node.token));
 }
 
 inline void print_expr_node(const Ast::FloatLiteral& node, int depth) {
     print_indent(depth);
-    fmt::print("FloatLiteral: {}\n", token_value(node.token));
+    std::print("FloatLiteral: {}\n", token_value(node.token));
 }
 
 inline void print_expr_node(const Ast::StringLiteral& node, int depth) {
     print_indent(depth);
-    fmt::print("StringLiteral: {}\n", token_value(node.token));
+    std::print("StringLiteral: {}\n", token_value(node.token));
 }
 
 inline void print_expr_node(const Ast::BoolLiteral& node, int depth) {
     print_indent(depth);
-    fmt::print("BoolLiteral: {}\n", token_value(node.token));
+    std::print("BoolLiteral: {}\n", token_value(node.token));
 }
 
 inline void print_expr_node(const Ast::Identifier& node, int depth) {
     print_indent(depth);
-    fmt::print("Identifier: {}\n", token_value(node.token));
+    std::print("Identifier: {}\n", token_value(node.token));
 }
 
 inline void print_expr_node(const Ast::FactorOp& node, int depth) {
     print_indent(depth);
-    fmt::print("FactorOp: {}\n", token_value(node.op));
+    std::print("FactorOp: {}\n", token_value(node.op));
     if (node.left) print_expr(node.left, depth + 1);
     if (node.right) print_expr(node.right, depth + 1);
 }
 
 inline void print_expr_node(const Ast::TermOp& node, int depth) {
     print_indent(depth);
-    fmt::print("TermOp: {}\n", token_value(node.op));
+    std::print("TermOp: {}\n", token_value(node.op));
     if (node.left) print_expr(node.left, depth + 1);
     if (node.right) print_expr(node.right, depth + 1);
 }
 
 inline void print_expr_node(const Ast::BitwiseOp& node, int depth) {
     print_indent(depth);
-    fmt::print("BitwiseOp: {}\n", token_value(node.op));
+    std::print("BitwiseOp: {}\n", token_value(node.op));
     if (node.left) print_expr(node.left, depth + 1);
     if (node.right) print_expr(node.right, depth + 1);
 }
 
 inline void print_expr_node(const Ast::EqualityOp& node, int depth) {
     print_indent(depth);
-    fmt::print("EqualityOp: {}\n", token_value(node.op));
+    std::print("EqualityOp: {}\n", token_value(node.op));
     if (node.left) print_expr(node.left, depth + 1);
     if (node.right) print_expr(node.right, depth + 1);
 }
 
 inline void print_expr_node(const Ast::ComparisonOp& node, int depth) {
     print_indent(depth);
-    fmt::print("ComparisonOp: {}\n", token_value(node.op));
+    std::print("ComparisonOp: {}\n", token_value(node.op));
     if (node.left) print_expr(node.left, depth + 1);
     if (node.right) print_expr(node.right, depth + 1);
 }
 
 inline void print_expr_node(const Ast::PowerOp& node, int depth) {
     print_indent(depth);
-    fmt::print("PowerOp: {}\n", token_value(node.op));
+    std::print("PowerOp: {}\n", token_value(node.op));
     if (node.base) print_expr(node.base, depth + 1);
     if (node.exponent) print_expr(node.exponent, depth + 1);
 }
 
 inline void print_expr_node(const Ast::AndOp& node, int depth) {
     print_indent(depth);
-    fmt::print("AndOp: {}\n", token_value(node.op));
+    std::print("AndOp: {}\n", token_value(node.op));
     if (node.left) print_expr(node.left, depth + 1);
     if (node.right) print_expr(node.right, depth + 1);
 }
 
 inline void print_expr_node(const Ast::OrOp& node, int depth) {
     print_indent(depth);
-    fmt::print("OrOp: {}\n", token_value(node.op));
+    std::print("OrOp: {}\n", token_value(node.op));
     if (node.left) print_expr(node.left, depth + 1);
     if (node.right) print_expr(node.right, depth + 1);
 }
 
 inline void print_expr_node(const Ast::AssignmentOp& node, int depth) {
     print_indent(depth);
-    fmt::print("AssignmentOp: {}\n", token_value(node.token));
+    std::print("AssignmentOp: {}\n", token_value(node.token));
     print_indent(depth + 1);
-    fmt::print("target:\n");
+    std::print("target:\n");
     if (node.target) print_expr(node.target, depth + 2);
     print_indent(depth + 1);
-    fmt::print("value:\n");
+    std::print("value:\n");
     if (node.value) print_expr(node.value, depth + 2);
 }
 
 inline void print_expr_node(const Ast::AugmentedAssignmentOp& node, int depth) {
     print_indent(depth);
-    fmt::print("AugmentedAssignmentOp: {}\n", token_value(node.op));
+    std::print("AugmentedAssignmentOp: {}\n", token_value(node.op));
     print_indent(depth + 1);
-    fmt::print("target:\n");
+    std::print("target:\n");
     if (node.target) print_expr(node.target, depth + 2);
     print_indent(depth + 1);
-    fmt::print("value:\n");
+    std::print("value:\n");
     if (node.value) print_expr(node.value, depth + 2);
 }
 
 inline void print_expr_node(const Ast::CallExpr& node, int depth) {
     print_indent(depth);
-    fmt::print("CallExpr\n");
+    std::print("CallExpr\n");
     print_indent(depth + 1);
-    fmt::print("callee:\n");
+    std::print("callee:\n");
     print_expr(node.callee, depth + 2);
     if (!node.arguments.empty()) {
         print_indent(depth + 1);
-        fmt::print("arguments:\n");
+        std::print("arguments:\n");
         for (const auto& arg : node.arguments) {
             print_expr(arg, depth + 2);
         }
@@ -146,13 +146,13 @@ inline void print_expr_node(const Ast::CallExpr& node, int depth) {
 
 inline void print_expr_node(const Ast::ConstructorCallExpr& node, int depth) {
     print_indent(depth);
-    fmt::print("ConstructorCallExpr\n");
+    std::print("ConstructorCallExpr\n");
     print_indent(depth + 1);
-    fmt::print("callee:\n");
+    std::print("callee:\n");
     print_expr(node.constructor, depth + 2);
     if (!node.arguments.empty()) {
         print_indent(depth + 1);
-        fmt::print("arguments:\n");
+        std::print("arguments:\n");
         for (const auto& arg : node.arguments) {
             print_expr(arg, depth + 2);
         }
@@ -161,16 +161,16 @@ inline void print_expr_node(const Ast::ConstructorCallExpr& node, int depth) {
 
 inline void print_expr_node(const Ast::AttributeExpr& node, int depth) {
     print_indent(depth);
-    fmt::print("AttributeExpr\n");
+    std::print("AttributeExpr\n");
     print_indent(depth + 1);
-    fmt::print("constructor: {}\n", token_value(node.constructor.token));
+    std::print("constructor: {}\n", token_value(node.constructor.token));
     print_indent(depth + 1);
-    fmt::print("attribute: {}\n", token_value(node.attribute.token));
+    std::print("attribute: {}\n", token_value(node.attribute.token));
 }
 
 inline void print_expr_node(const Ast::ListExpr& node, int depth) {
     print_indent(depth);
-    fmt::print("ListExpr\n");
+    std::print("ListExpr\n");
     for (const auto& elem : node.elements) {
         print_expr(elem, depth + 1);
     }
@@ -178,26 +178,26 @@ inline void print_expr_node(const Ast::ListExpr& node, int depth) {
 
 inline void print_expr_node(const Ast::ListIndexExpr& node, int depth) {
     print_indent(depth);
-    fmt::print("ListIndexExpr\n");
+    std::print("ListIndexExpr\n");
     print_indent(depth + 1);
-    fmt::print("list:\n");
+    std::print("list:\n");
     print_expr(node.list_name, depth + 2);
     print_indent(depth + 1);
-    fmt::print("index:\n");
+    std::print("index:\n");
     print_expr(node.index, depth + 2);
 }
 
 inline void print_expr_node(const Ast::DictExpr& node, int depth) {
     print_indent(depth);
-    fmt::print("DictExpr\n");
+    std::print("DictExpr\n");
     for (const auto& [key, value] : node.entries) {
         print_indent(depth + 1);
-        fmt::print("entry:\n");
+        std::print("entry:\n");
         print_indent(depth + 2);
-        fmt::print("key:\n");
+        std::print("key:\n");
         print_expr(key, depth + 3);
         print_indent(depth + 2);
-        fmt::print("value:\n");
+        std::print("value:\n");
         print_expr(value, depth + 3);
     }
 }
@@ -205,9 +205,9 @@ inline void print_expr_node(const Ast::DictExpr& node, int depth) {
 inline void print_expr_node(const Ast::SelfExpr& node, int depth) {
     print_indent(depth);
     if (node.attribute) {
-        fmt::print("SelfExpr.{}\n", token_value(node.attribute->token));
+        std::print("SelfExpr.{}\n", token_value(node.attribute->token));
     } else {
-        fmt::print("SelfExpr\n");
+        std::print("SelfExpr\n");
     }
 }
 
@@ -229,7 +229,7 @@ inline void print_operator(const Ast::OperatorsType& op, int depth) {
 inline void print_expr(const Ast::ExprPtr& expr, int depth) {
     if (!expr) {
         print_indent(depth);
-        fmt::print("(null)\n");
+        std::print("(null)\n");
         return;
     }
 
@@ -248,7 +248,7 @@ inline void print_expr(const Ast::ExprPtr& expr, int depth) {
 // Block printer
 inline void print_block(const Ast::Block& block, int depth) {
     print_indent(depth);
-    fmt::print("Block:\n");
+    std::print("Block:\n");
     for (const auto& stmt : block.statements) {
         print_stmt(stmt, depth + 1);
     }
@@ -257,7 +257,7 @@ inline void print_block(const Ast::Block& block, int depth) {
 // Statement printers
 inline void print_stmt_node(const Ast::ReturnStmt& node, int depth) {
     print_indent(depth);
-    fmt::print("ReturnStmt\n");
+    std::print("ReturnStmt\n");
     if (node.value) {
         print_expr(node.value, depth + 1);
     }
@@ -265,85 +265,85 @@ inline void print_stmt_node(const Ast::ReturnStmt& node, int depth) {
 
 inline void print_stmt_node(const Ast::PassStmt& node, int depth) {
     print_indent(depth);
-    fmt::print("PassStmt\n");
+    std::print("PassStmt\n");
 }
 
 inline void print_stmt_node(const Ast::BreakStmt& node, int depth) {
     print_indent(depth);
-    fmt::print("BreakStmt\n");
+    std::print("BreakStmt\n");
 }
 
 inline void print_stmt_node(const Ast::ContinueStmt& node, int depth) {
     print_indent(depth);
-    fmt::print("ContinueStmt\n");
+    std::print("ContinueStmt\n");
 }
 
 inline void print_stmt_node(const Ast::IfStmt& node, int depth) {
     print_indent(depth);
-    fmt::print("IfStmt\n");
+    std::print("IfStmt\n");
     print_indent(depth + 1);
-    fmt::print("condition:\n");
+    std::print("condition:\n");
     print_expr(node.condition, depth + 2);
     print_indent(depth + 1);
-    fmt::print("body:\n");
+    std::print("body:\n");
     print_block(node.body, depth + 2);
 
     for (const auto& elif : node.elifs) {
         print_indent(depth + 1);
-        fmt::print("elif:\n");
+        std::print("elif:\n");
         print_indent(depth + 2);
-        fmt::print("condition:\n");
+        std::print("condition:\n");
         print_expr(elif.condition, depth + 3);
         print_block(elif.body, depth + 2);
     }
 
     if (node.else_branch) {
         print_indent(depth + 1);
-        fmt::print("else:\n");
+        std::print("else:\n");
         print_block(node.else_branch->body, depth + 2);
     }
 }
 
 inline void print_stmt_node(const Ast::WhileStmt& node, int depth) {
     print_indent(depth);
-    fmt::print("WhileStmt\n");
+    std::print("WhileStmt\n");
     print_indent(depth + 1);
-    fmt::print("condition:\n");
+    std::print("condition:\n");
     print_expr(node.condition, depth + 2);
     print_indent(depth + 1);
-    fmt::print("body:\n");
+    std::print("body:\n");
     print_block(node.body, depth + 2);
 }
 
 inline void print_stmt_node(const Ast::ForStmt& node, int depth) {
     print_indent(depth);
-    fmt::print("ForStmt\n");
+    std::print("ForStmt\n");
     print_indent(depth + 1);
-    fmt::print("variable: {}\n", token_value(node.variable.token));
+    std::print("variable: {}\n", token_value(node.variable.token));
     if (node.iterable) {
         print_indent(depth + 1);
-        fmt::print("iterable:\n");
+        std::print("iterable:\n");
         print_expr(*node.iterable, depth + 2);
     }
     print_indent(depth + 1);
-    fmt::print("body:\n");
+    std::print("body:\n");
     print_block(node.body, depth + 2);
 }
 
 inline void print_stmt_node(const Ast::CaseStmt& node, int depth) {
     print_indent(depth);
-    fmt::print("CaseStmt\n");
+    std::print("CaseStmt\n");
     print_indent(depth + 1);
-    fmt::print("pattern:\n");
+    std::print("pattern:\n");
     print_expr(node.pattern, depth + 2);
     print_block(node.body, depth + 1);
 }
 
 inline void print_stmt_node(const Ast::MatchStmt& node, int depth) {
     print_indent(depth);
-    fmt::print("MatchStmt\n");
+    std::print("MatchStmt\n");
     print_indent(depth + 1);
-    fmt::print("subject:\n");
+    std::print("subject:\n");
     print_expr(node.subject, depth + 2);
     for (const auto& case_stmt : node.cases) {
         print_stmt_node(case_stmt, depth + 1);
@@ -352,75 +352,75 @@ inline void print_stmt_node(const Ast::MatchStmt& node, int depth) {
 
 inline void print_stmt_node(const Ast::TryStmt& node, int depth) {
     print_indent(depth);
-    fmt::print("TryStmt\n");
+    std::print("TryStmt\n");
     print_block(node.body, depth + 1);
     if (node.except_branch) {
         print_indent(depth + 1);
-        fmt::print("except:\n");
+        std::print("except:\n");
         print_block(node.except_branch->body, depth + 2);
     }
     if (node.finally_branch) {
         print_indent(depth + 1);
-        fmt::print("finally:\n");
+        std::print("finally:\n");
         print_block(node.finally_branch->body, depth + 2);
     }
     if (node.else_branch) {
         print_indent(depth + 1);
-        fmt::print("else:\n");
+        std::print("else:\n");
         print_block(node.else_branch->body, depth + 2);
     }
 }
 
 inline void print_stmt_node(const Ast::FunctionDef& node, int depth) {
     print_indent(depth);
-    fmt::print("FunctionDef: {}\n", token_value(node.token));
+    std::print("FunctionDef: {}\n", token_value(node.token));
     if (!node.params.params.empty()) {
         print_indent(depth + 1);
-        fmt::print("params: ");
+        std::print("params: ");
         for (size_t i = 0; i < node.params.params.size(); ++i) {
-            if (i > 0) fmt::print(", ");
-            fmt::print("{}", token_value(node.params.params[i].token));
+            if (i > 0) std::print(", ");
+            std::print("{}", token_value(node.params.params[i].token));
         }
-        fmt::print("\n");
+        std::print("\n");
     }
     print_block(node.body, depth + 1);
 }
 
 inline void print_stmt_node(const Ast::MethodDef& node, int depth) {
     print_indent(depth);
-    fmt::print("MethodDef: {}\n", token_value(node.token));
+    std::print("MethodDef: {}\n", token_value(node.token));
     if (!node.params.params.empty()) {
         print_indent(depth + 1);
-        fmt::print("params: ");
+        std::print("params: ");
         for (size_t i = 0; i < node.params.params.size(); ++i) {
-            if (i > 0) fmt::print(", ");
-            fmt::print("{}", token_value(node.params.params[i].token));
+            if (i > 0) std::print(", ");
+            std::print("{}", token_value(node.params.params[i].token));
         }
-        fmt::print("\n");
+        std::print("\n");
     }
     print_block(node.body, depth + 1);
 }
 
 inline void print_stmt_node(const Ast::ClassDef& node, int depth) {
     print_indent(depth);
-    fmt::print("ClassDef: {}\n", token_value(node.token));
+    std::print("ClassDef: {}\n", token_value(node.token));
     print_block(node.body, depth + 1);
 }
 
 inline void print_stmt_node(const Ast::LambdaStmt& node, int depth) {
     print_indent(depth);
-    fmt::print("LambdaStmt\n");
+    std::print("LambdaStmt\n");
     if (!node.params.params.empty()) {
         print_indent(depth + 1);
-        fmt::print("params: ");
+        std::print("params: ");
         for (size_t i = 0; i < node.params.params.size(); ++i) {
-            if (i > 0) fmt::print(", ");
-            fmt::print("{}", token_value(node.params.params[i].token));
+            if (i > 0) std::print(", ");
+            std::print("{}", token_value(node.params.params[i].token));
         }
-        fmt::print("\n");
+        std::print("\n");
     }
     print_indent(depth + 1);
-    fmt::print("body:\n");
+    std::print("body:\n");
     for (const auto& stmt : node.body) {
         print_stmt(stmt, depth + 2);
     }
@@ -432,7 +432,7 @@ inline void print_stmt_node(const Ast::Block& node, int depth) {
 
 inline void print_stmt_node(const Ast::ExpressionStmt& node, int depth) {
     print_indent(depth);
-    fmt::print("ExpressionStmt\n");
+    std::print("ExpressionStmt\n");
     if (node.expression) {
         print_expr(node.expression, depth + 1);
     }
@@ -442,7 +442,7 @@ inline void print_stmt_node(const Ast::ExpressionStmt& node, int depth) {
 inline void print_stmt(const Ast::StmtPtr& stmt, int depth) {
     if (!stmt) {
         print_indent(depth);
-        fmt::print("(null)\n");
+        std::print("(null)\n");
         return;
     }
 
@@ -453,7 +453,7 @@ inline void print_stmt(const Ast::StmtPtr& stmt, int depth) {
 
 // Program printer
 inline void print_program(const Ast::Program& program) {
-    fmt::print("Program\n");
+    std::print("Program\n");
     for (const auto& stmt : program.statements) {
         print_stmt(stmt, 1);
     }

@@ -6,8 +6,6 @@ set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-find_package(fmt REQUIRED)
-
 if(DEFINED SANITIZER_FLAGS)
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${SANITIZER_FLAGS}")
     message(STATUS "Sanitizers enabled: AddressSanitizer, UndefinedBehaviorSanitizer")
@@ -19,7 +17,6 @@ add_library(frontend)
 target_include_directories(frontend PUBLIC ${PROJECT_SRC_DIR})
 target_sources(frontend PUBLIC ${PROJECT_SRC_DIR}/frontend/lexical.cpp ${PROJECT_SRC_DIR}/frontend/parser.cpp ${PROJECT_SRC_DIR}/frontend/ast.hpp)
 target_sources(frontend PUBLIC ${PROJECT_SRC_DIR}/print/ast_tree.hpp)
-target_link_libraries(frontend PUBLIC fmt::fmt)
 
 add_executable(twopy)
 target_include_directories(twopy PUBLIC ${PROJECT_SRC_DIR})
@@ -30,7 +27,7 @@ if (APPLE AND LLVM_LIBRARY_DIR)
     target_link_directories(twopy PUBLIC "${LLVM_LIBRARY_DIR}/c++" PUBLIC ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
 endif ()
 
-target_link_libraries(twopy PRIVATE frontend fmt::fmt)
+target_link_libraries(twopy PRIVATE frontend)
 
 message(STATUS "C++ Compiler: ${CMAKE_CXX_COMPILER}")
 message(STATUS "C++ Standard: ${CMAKE_CXX_STANDARD}")

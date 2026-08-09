@@ -6,7 +6,7 @@
 #include <memory>
 #include <type_traits>
 
-#include <fmt/core.h>
+#include <format>
 
 /* Each of these would be local bytecode scope */
 namespace TwoPy::Backend {
@@ -78,7 +78,7 @@ namespace TwoPy::Backend {
 
             /* Gets called when the printer calls it */
             [[nodiscard]] std::string stringify() override {
-                return fmt::format("<code object {} at {}>", m_name, fmt::ptr(this));
+                return std::format("<code object {} at {}>", m_name, static_cast<const void*>(this));
             }
 
             [[nodiscard]] bool is_truthy() const noexcept override {
