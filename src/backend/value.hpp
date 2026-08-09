@@ -1,6 +1,7 @@
 #ifndef TWOPY_VALUE_HPP
 #define TWOPY_VALUE_HPP
 
+#include <cstdint>
 #include <type_traits>
 #include <utility>
 #include <variant>
@@ -13,7 +14,7 @@
     Took me some time to figure out that the constructor takes in a rvalue
  */
 namespace TwoPy::Backend {
-    enum class ValueTag : uint8_t {
+    enum class ValueTag : std::uint8_t {
         NONE,   // C++ std::monostate
         BOOL,   // C++ true or false
         INT,    // C++ long
