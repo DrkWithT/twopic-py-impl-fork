@@ -1,7 +1,7 @@
 #include "backend/bytecode.hpp"
 
 #include <stdexcept>
-#include <fmt/core.h>
+#include <print>
 
 /*
 After doing some research, I found two ways of handling std::variant types
@@ -30,7 +30,7 @@ namespace TwoPy::Backend {
         try {
             disassemble_stmt(*stmt);
         } catch (const std::exception& e) {
-            fmt::print("Error: {}\n", e.what());
+            std::print("Error: {}\n", e.what());
         }
     }
 

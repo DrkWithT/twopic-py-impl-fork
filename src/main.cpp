@@ -1,6 +1,6 @@
 #include <string_view>
 #include <string>
-#include <fmt/core.h>
+#include <print>
 
 #include "frontend/lexical.hpp"
 #include "frontend/parser.hpp"
@@ -10,8 +10,8 @@
 #include "backend/vm.hpp"
 
 void show_usage(const char* process_path) {
-    fmt::print(stderr, "Usage: {} [-a | -d | -r] <file.py>\n\t-d: dump bytecode\n", process_path);
-    fmt::print(stderr, "Example: {} test.py\n", process_path);
+    std::print(stderr, "Usage: {} [-a | -d | -r] <file.py>\n\t-d: dump bytecode\n", process_path);
+    std::print(stderr, "Example: {} test.py\n", process_path);
 }
 
 int main(int argc, char* argv[]) {
@@ -31,6 +31,7 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
+    // TODO should changge it up where it no longer uses exceptions 
     try {
         const std::string& source_code = TwoPy::Frontend::read_file(file_path);
         TwoPy::Frontend::lexical_class lexer(source_code);
@@ -39,7 +40,7 @@ int main(int argc, char* argv[]) {
         TwoPy::Frontend::Program program = parser.parse();
 
         if (allow_ast_dump) {
-            fmt::print("\n=== ABSTRACT SYNTAX TREE ===\n");
+            std::print("\n=== ABSTRACT SYNTAX TREE ===\n");
             AstPrinter::print_ast(program);
             return 0;
         }
@@ -48,7 +49,7 @@ int main(int argc, char* argv[]) {
         TwoPy::Backend::ByteCodeProgram bytecode_program = bytecode_compiler.disassemble_program();
 
         if (allow_bytecode_dump) {
-            fmt::print("\n=== BYTECODE ===\n");
+            std::print("\n=== BYTECODE ===\n");
             BytePrinter::disassemble_program(bytecode_program);
             return 0;
         }
@@ -61,12 +62,12 @@ int main(int argc, char* argv[]) {
         auto result = py_vm.run();
 
         if (result == TwoPy::Backend::VM::Result::RUNTIME_ERROR) {
-            throw std::runtime_error("You need more logic");
-        } else {
-            fmt::print("logic good");
-        }
+            throw std::runtime_error("Runtime logic bug");
+        }  
+        
+        std::print("finished with program");
     } catch (const std::exception& e) {
-        fmt::print(stderr, "Error: {}\n", e.what());
+        std::print(stderr, "Error: {}\n", e.what());
         return 1;
     }
 

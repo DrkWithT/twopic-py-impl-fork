@@ -7,7 +7,8 @@
 #include <variant>
 #include <iomanip>
 
-#include <fmt/core.h>
+#include <print>
+#include <format>
 #include "backend/bytecode.hpp"
 #include "backend/objects.hpp"
 #include "backend/value.hpp"
@@ -72,16 +73,16 @@ namespace BytePrinter {
                                   const Chunk& chunk) {
         std::string opname = opcode_to_string(instr.opcode);
 
-        fmt::print("{:>6}  {:<20}", offset * 2, opname);
+        std::print("{:>6}  {:<20}", offset * 2, opname);
 
         switch (instr.opcode) {
             case OpCode::LOAD_CONSTANT:
                 if (instr.argument < chunk.consts_pool.size()) {
-                    fmt::print(" {:>3}  ({})",
+                    std::print(" {:>3}  ({})",
                               instr.argument,
                               value_to_string(chunk.consts_pool[instr.argument]));
                 } else {
-                    fmt::print(" {:>3}  <invalid constant index>", instr.argument);
+                    std::print(" {:>3}  <invalid constant index>", instr.argument);
                 }
                 break;
 
@@ -90,71 +91,71 @@ namespace BytePrinter {
             case OpCode::LOAD_NAME:
             case OpCode::STORE_NAME:
                 if (instr.argument < chunk.names_pool.size()) {
-                    fmt::print(" {:>3}  ({})",
+                    std::print(" {:>3}  ({})",
                               instr.argument,
                               chunk.names_pool[instr.argument]);
                 } else {
-                    fmt::print(" {:>3}  <invalid variable index>", instr.argument);
+                    std::print(" {:>3}  <invalid variable index>", instr.argument);
                 }
                 break;
 
             case OpCode::POP_JUMP_IF_FALSE:
-                fmt::print(" {:>3}  (to {})", (offset + 1) * 2, instr.argument);
+                std::print(" {:>3}  (to {})", (offset + 1) * 2, instr.argument);
                 break;
 
             case OpCode::POP_JUMP_IF_TRUE:
-                fmt::print(" {:>3}  (to {})", instr.argument / 2, instr.argument);
+                std::print(" {:>3}  (to {})", instr.argument / 2, instr.argument);
                 break;
 
             case OpCode::CALL_FUNCTION:
-                fmt::print(" {:>3}  (arg count)", instr.argument);
+                std::print(" {:>3}  (arg count)", instr.argument);
                 break;
 
             default:
                 if (instr.argument != 0) {
-                    fmt::print(" {:>3}", instr.argument);
+                    std::print(" {:>3}", instr.argument);
                 }
                 break;
         }
 
-        fmt::print("\n");
+        std::print("\n");
     }
 
     inline void disassemble_chunk(const Chunk& chunk, const std::string& name = "<chunk>") {
-        fmt::print("Disassembly of {}:\n", name);
-        fmt::print("Constants: [");
+        std::print("Disassembly of {}:\n", name);
+        std::print("Constants: [");
         for (size_t i = 0; i < chunk.consts_pool.size(); ++i) {
-            if (i > 0) fmt::print(", ");
-            fmt::print("{}", value_to_string(chunk.consts_pool[i]));
+            if (i > 0) std::print(", ");
+            std::print("{}", value_to_string(chunk.consts_pool[i]));
         }
-        fmt::print("]\n");
+        std::print("]\n");
 
-        fmt::print("Variables: [");
+        std::print("Variables: [");
         for (size_t i = 0; i < chunk.names_pool.size(); ++i) {
-            if (i > 0) fmt::print(", ");
-            fmt::print("'{}'", chunk.names_pool[i]);
+            if (i > 0) std::print(", ");
+            std::print("'{}'", chunk.names_pool[i]);
         }
-        fmt::print("]\n\n");
+        std::print("]\n\n");
 
-        fmt::print("Offset  Opcode               Arg  Details\n");
-        fmt::print("------  -------------------  ---  -------\n");
+        std::print("Offset  Opcode               Arg  Details\n");
+        std::print("------  -------------------  ---  -------\n");
 
         for (size_t i = 0; i < chunk.code.size(); ++i) {
             print_instruction(chunk.code[i], i, chunk);
         }
 
-        fmt::print("\n");
+        std::print("\n");
     }
 
     inline void disassemble_program(const ByteCodeProgram& program) {
-        fmt::print("=== Bytecode Program: {} ===\n\n", program.name);
+        std::print("=== Bytecode Program: {} ===\n\n", program.name);
 
         for (size_t i = 0; i < program.chunks.size(); ++i) {
-            std::string chunk_name = (i == 0) ? "<module>" : fmt::format("<chunk {}>", i);
+            std::string chunk_name = (i == 0) ? "<module>" : std::format("<chunk {}>", i);
             disassemble_chunk(*program.chunks[i], chunk_name);
         }
 
-        fmt::print("=== End of {} ===\n", program.name);
+        std::print("=== End of {} ===\n", program.name);
     }
 }
 

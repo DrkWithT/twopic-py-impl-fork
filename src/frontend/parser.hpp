@@ -5,8 +5,6 @@
 #include <format>
 #include <concepts>
 
-#include <fmt/core.h>
-
 #include "frontend/ast.hpp"
 #include "frontend/lexical.hpp"
 
@@ -44,7 +42,7 @@ namespace TwoPy::Frontend {
             void debug_syntax_error() {
                 m_error_count++;
                 throw std::runtime_error {
-                    fmt::format("Syntax Error at: line {} column {} ", std::to_string(current_token().line), std::to_string(current_token().column))
+                    std::format("Syntax Error at: line {} column {} ", std::to_string(current_token().line), std::to_string(current_token().column))
                 };
             }
 
