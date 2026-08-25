@@ -1,6 +1,6 @@
 # TwoPy
 
-A Python interpreter written in C++23. TwoPy takes Python source code through a full pipeline — lexing, parsing, bytecode compilation, and execution on a stack-based virtual machine.
+A Python interpreter written in C++26. TwoPy takes Python source code through a full pipeline — lexing, parsing, bytecode compilation, and execution on a stack-based virtual machine.
 
 Special thanks to DrkWithT for helping refactor the `match` and `consume` functions in the Parser namespace to use metaprogramming, eliminating verbose `consume(T) || consume(T)` chains for larger conditionals.
 
@@ -26,8 +26,6 @@ The next test will be trying to get fizzbuzz working and fib.
 <img width="623" height="108" alt="Screenshot_20260308_202950" src="https://github.com/user-attachments/assets/7cd395f6-c356-4c2b-8e58-f09fda33e2d2" />
 
 # TODO
-
-Tailtail call recursion bytecode
 
 For/while loops
 

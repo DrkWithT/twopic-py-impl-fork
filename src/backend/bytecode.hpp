@@ -11,48 +11,9 @@
 
 #include "backend/value.hpp"
 #include "frontend/ast.hpp"
+#include "backend/opcode.hpp"
 
 namespace TwoPy::Backend {
-    /*
-    Opcode (add, subtract, jump, whatever)
-    Vars/Constant (for your STORE_VARIABLE and LOAD_CONSTANT)
-    */
-    enum class OpCode : std::uint8_t {
-        RETURN,
-        ADD,
-        SUB,
-        MUL,
-        DIV,
-        POP,
-        PUSH,
-
-        MAKE_FUNCTION,
-        CALL_FUNCTION,
-        PUSH_NULL,		// Prepares the stack for a function call.
-
-        BINARY_POWER,
-        BINARY_MODULO,
-        BINARY_FLOOR_DIVIDE,
-
-        STORE_FAST, // Local vars
-        STORE_NAME, // Stuff like Classes, Functions, Dicts, Lists, etc etc
-
-        COMPARE_OP, // != ==
-
-        POP_JUMP_IF_FALSE, // AND stops if the first value is true
-        POP_JUMP_IF_TRUE, // OR stops if the first value is true
-
-        LOAD_FAST,  // Local vars
-        LOAD_NAME,  // Module-level (mirrors STORE_NAME)
-        LOAD_CONSTANT,
-    };
-
-    /* Inside Python's bytecode 3.6 documentation. Use 2 bytes for each instruction. Previously the number of bytes varied by instruction.*/
-    struct Instruction {
-        OpCode opcode;          // VM opcode
-        std::uint8_t argument;  // index to a certain constant or local variable slot
-    };
-
     struct Chunk {
         std::vector<Instruction> code;
         std::vector<Value> consts_pool;
@@ -70,13 +31,13 @@ namespace TwoPy::Backend {
         const TwoPy::Frontend::Program& m_program;
         std::size_t m_scope_depth {};
 
-        std::map<std::string, std::uint8_t> global_vars {};
-        std::map<std::string, std::uint8_t> local_vars {};
+        std::map<std::string, std::uint8_t> global_vars;
+        std::map<std::string, std::uint8_t> local_vars;
 
-        std::vector<std::size_t> pending_jumps {};
-        std::vector<std::size_t> truthy_jumps {};
+        std::vector<std::size_t> pending_jumps;
+        std::vector<std::size_t> truthy_jumps;
 
-        std::shared_ptr<Chunk> m_curr_chunk {};
+        Chunk* m_curr_chunk {};
 
         ByteCodeProgram m_bytecode_program {};     
 
@@ -94,7 +55,7 @@ namespace TwoPy::Backend {
         }      
 
         void emit_return_none() {
-            auto it = std::ranges::find_if(m_curr_chunk->consts_pool, [](const Value& v) {
+            auto it = std::ranges::find_if(m_curr_chunk->consts_pool, [](const Value& v) -> bool {
                 return std::get_if<std::monostate>(&v.data()) != nullptr;
             });
 
@@ -122,6 +83,12 @@ namespace TwoPy::Backend {
             m_scope_depth--;
         }
 
+        void disassemble_body_while_stmt(const TwoPy::Frontend::Block& blk) {
+            for (const auto& s : blk.statements) {
+                disassemble_instruction(s);
+            }
+        }
+
         /* Non helper functions */
         void disassemble_instruction(const TwoPy::Frontend::StmtPtr& stmt);
         void disassemble_stmt(const TwoPy::Frontend::StmtNode& stmt);
@@ -132,8 +99,14 @@ namespace TwoPy::Backend {
 
         void disassemble_function_object(const TwoPy::Frontend::FunctionDef& function);
         void disassemble_callexpr_object(const TwoPy::Frontend::CallExpr& callee);
+
+        /* 
+            * Jumping/Patching notes
+        */
         void disassemble_elif_stmt(const TwoPy::Frontend::ElifStmt& stmt);
         void disassemble_if_stmt(const TwoPy::Frontend::IfStmt& stmt);
+        void disassemble_while(const TwoPy::Frontend::WhileStmt& p_while);
+
         void disassemble_body_stmt(const TwoPy::Frontend::Block& blk);
         // pushing data to the stack
         void disassemble_identifier_expr(const TwoPy::Frontend::Identifier& iden);

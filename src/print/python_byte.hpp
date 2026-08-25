@@ -6,6 +6,7 @@
 #include <memory>
 #include <variant>
 #include <iomanip>
+#include <algorithm>
 
 #include <print>
 #include <format>
@@ -30,6 +31,9 @@ namespace BytePrinter {
             case OpCode::PUSH_NULL: return "PUSH_NULL";
             case OpCode::BINARY_POWER: return "BINARY_POWER";
             case OpCode::BINARY_MODULO: return "BINARY_MODULO";
+            case OpCode::BINARY_FLOOR_DIVIDE: return "BINARY_FLOOR_DIVIDE";
+            case OpCode::BINARY_ADD: return "BINARY_ADD";
+            case OpCode::BINARY_SUB: return "BINARY_SUB";
             case OpCode::STORE_FAST: return "STORE_FAST";
             case OpCode::STORE_NAME: return "STORE_NAME";
             case OpCode::COMPARE_OP: return "COMPARE_OP";
@@ -38,8 +42,33 @@ namespace BytePrinter {
             case OpCode::LOAD_FAST: return "LOAD_FAST";
             case OpCode::LOAD_NAME: return "LOAD_NAME";
             case OpCode::LOAD_CONSTANT: return "LOAD_CONSTANT";
-            default: return "UNKNOWN";
+            case OpCode::JUMP_BACKWARD: return "JUMP_BACKWARD";
         }
+
+        // No default case: -Wswitch flags an opcode added to the enum but not named here.
+        return std::format("UNKNOWN({})", static_cast<unsigned>(op));
+    }
+
+    inline bool is_jump(OpCode op) {
+        switch (op) {
+            case OpCode::POP_JUMP_IF_FALSE:
+            case OpCode::POP_JUMP_IF_TRUE:
+            case OpCode::JUMP_BACKWARD:
+                return true;
+            default:
+                return false;
+        }
+    }
+
+    /* Jump arguments hold the absolute byte offset of their target (see compiler::patch_jump). */
+    inline std::vector<std::size_t> collect_jump_targets(const Chunk& chunk) {
+        std::vector<std::size_t> targets;
+        for (const auto& instr : chunk.code) {
+            if (is_jump(instr.opcode)) {
+                targets.push_back(instr.argument);
+            }
+        }
+        return targets;
     }
 
     inline std::string value_to_string(const Value& val) {
@@ -69,56 +98,82 @@ namespace BytePrinter {
         return "<unknown>";
     }
 
-    inline void print_instruction(const Instruction& instr, size_t offset,
-                                  const Chunk& chunk) {
-        std::string opname = opcode_to_string(instr.opcode);
+    /* Renders the arg column plus a "(to N)" detail for an absolute jump target. */
+    inline std::string jump_argument_string(const Instruction& instr, size_t offset,
+                                            const Chunk& chunk) {
+        const std::size_t target = instr.argument;
+        const std::size_t here = offset * 2;
+        const std::size_t code_size = chunk.code.size() * 2;
 
-        std::print("{:>6}  {:<20}", offset * 2, opname);
+        std::string detail = std::format(" {:>3}  (to {}", instr.argument, target);
 
+        if (target > code_size) {
+            detail += ", past end of chunk";
+        } else if (target % 2 != 0) {
+            detail += ", misaligned";
+        } else if (target == here) {
+            detail += ", self loop";
+        }
+
+        return detail + ")";
+    }
+
+    inline std::string instruction_argument_string(const Instruction& instr, size_t offset,
+                                                   const Chunk& chunk) {
         switch (instr.opcode) {
             case OpCode::LOAD_CONSTANT:
                 if (instr.argument < chunk.consts_pool.size()) {
-                    std::print(" {:>3}  ({})",
-                              instr.argument,
-                              value_to_string(chunk.consts_pool[instr.argument]));
-                } else {
-                    std::print(" {:>3}  <invalid constant index>", instr.argument);
+                    return std::format(" {:>3}  ({})",
+                                       instr.argument,
+                                       value_to_string(chunk.consts_pool[instr.argument]));
                 }
-                break;
+                return std::format(" {:>3}  <invalid constant index>", instr.argument);
 
             case OpCode::STORE_FAST:
             case OpCode::LOAD_FAST:
             case OpCode::LOAD_NAME:
             case OpCode::STORE_NAME:
                 if (instr.argument < chunk.names_pool.size()) {
-                    std::print(" {:>3}  ({})",
-                              instr.argument,
-                              chunk.names_pool[instr.argument]);
-                } else {
-                    std::print(" {:>3}  <invalid variable index>", instr.argument);
+                    return std::format(" {:>3}  ({})",
+                                       instr.argument,
+                                       chunk.names_pool[instr.argument]);
                 }
-                break;
+                return std::format(" {:>3}  <invalid variable index>", instr.argument);
 
             case OpCode::POP_JUMP_IF_FALSE:
-                std::print(" {:>3}  (to {})", (offset + 1) * 2, instr.argument);
-                break;
-
             case OpCode::POP_JUMP_IF_TRUE:
-                std::print(" {:>3}  (to {})", instr.argument / 2, instr.argument);
-                break;
+            case OpCode::JUMP_BACKWARD:
+                return jump_argument_string(instr, offset, chunk);
 
             case OpCode::CALL_FUNCTION:
-                std::print(" {:>3}  (arg count)", instr.argument);
-                break;
+                return std::format(" {:>3}  (arg count)", instr.argument);
+
+            case OpCode::COMPARE_OP:
+                // The compiler does not encode which comparison yet, so there is nothing to name.
+                return "      (operator not encoded)";
 
             default:
                 if (instr.argument != 0) {
-                    std::print(" {:>3}", instr.argument);
+                    return std::format(" {:>3}", instr.argument);
                 }
-                break;
+                return {};
         }
+    }
 
-        std::print("\n");
+    inline void print_instruction(const Instruction& instr, size_t offset,
+                                  const Chunk& chunk,
+                                  const std::vector<std::size_t>& jump_targets = {}) {
+        const std::string opname = opcode_to_string(instr.opcode);
+        const std::string detail = instruction_argument_string(instr, offset, chunk);
+
+        // CPython's dis marks jump destinations with ">>" so loop bodies are easy to spot.
+        const bool is_target = std::ranges::find(jump_targets, offset * 2) != jump_targets.end();
+
+        if (detail.empty()) {
+            std::print("{:<2}{:>6}  {}\n", is_target ? ">>" : "", offset * 2, opname);
+        } else {
+            std::print("{:<2}{:>6}  {:<20}{}\n", is_target ? ">>" : "", offset * 2, opname, detail);
+        }
     }
 
     inline void disassemble_chunk(const Chunk& chunk, const std::string& name = "<chunk>") {
@@ -135,13 +190,17 @@ namespace BytePrinter {
             if (i > 0) std::print(", ");
             std::print("'{}'", chunk.names_pool[i]);
         }
-        std::print("]\n\n");
+        std::print("]\n");
 
-        std::print("Offset  Opcode               Arg  Details\n");
-        std::print("------  -------------------  ---  -------\n");
+        std::print("Bytes: {} ({} instructions)\n\n", chunk.code.size() * 2, chunk.code.size());
+
+        const auto jump_targets = collect_jump_targets(chunk);
+
+        std::print("  Offset  Opcode               Arg  Details\n");
+        std::print("  ------  -------------------  ---  -------\n");
 
         for (size_t i = 0; i < chunk.code.size(); ++i) {
-            print_instruction(chunk.code[i], i, chunk);
+            print_instruction(chunk.code[i], i, chunk, jump_targets);
         }
 
         std::print("\n");

@@ -134,7 +134,7 @@ namespace TwoPy::Backend {
                                 std::print("{}", args[i].to_string());
                             }
                             std::print("\n");
-                            vm_stack.push(Value{});
+                            vm_stack.emplace();
                         }
                     }
                     break;

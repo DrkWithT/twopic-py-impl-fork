@@ -745,8 +745,12 @@ StmtPtr parser_class::parse_for_stmt() {
     consume(token_type::IDENTIFIER);
     consume(token_type::KEYWORD_IN);
 
-    for_stmt.iterable = parse_expression_types();
-
+    if (match(token_type::IDENTIFIER)) {
+        for_stmt.iterable = parse_expression_types();
+    } else {
+        throw std::runtime_error("bad");
+    }
+    
     consume_newline();
     for_stmt.body = parse_block();
 

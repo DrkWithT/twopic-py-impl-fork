@@ -1,4 +1,5 @@
 #include "backend/bytecode.hpp"
+#include "frontend/ast.hpp"
 
 #include <stdexcept>
 #include <print>
@@ -14,7 +15,7 @@ namespace TwoPy::Backend {
         m_bytecode_program.name = "<module>";
         auto module_chunk = std::make_shared<Chunk>();
         m_bytecode_program.chunks.push_back(module_chunk);
-        m_curr_chunk = module_chunk;
+        m_curr_chunk = module_chunk.get();
     }
 
     ByteCodeProgram compiler::disassemble_program() {
@@ -35,7 +36,7 @@ namespace TwoPy::Backend {
     }
 
     void compiler::disassemble_stmt(const TwoPy::Frontend::StmtNode& stmt) {
-        if (auto* expr_stmt = std::get_if<TwoPy::Frontend::ExpressionStmt>(&stmt.node)) {
+        if (const auto* expr_stmt = std::get_if<TwoPy::Frontend::ExpressionStmt>(&stmt.node)) {
             if (expr_stmt->expression) {
                 disassemble_expr(*expr_stmt->expression);
             } else {
@@ -43,15 +44,15 @@ namespace TwoPy::Backend {
             }
         }
 
-        if (auto* func_def = std::get_if<TwoPy::Frontend::FunctionDef>(&stmt.node)) {
+        if (const auto* func_def = std::get_if<TwoPy::Frontend::FunctionDef>(&stmt.node)) {
             disassemble_function_object(*func_def);
         }
 
-        if (auto* if_stmt = std::get_if<TwoPy::Frontend::IfStmt>(&stmt.node)) {
+        if (const auto* if_stmt = std::get_if<TwoPy::Frontend::IfStmt>(&stmt.node)) {
              disassemble_if_stmt(*if_stmt);
         }
 
-        if (auto* return_stmt = std::get_if<TwoPy::Frontend::ReturnStmt>(&stmt.node)) {
+        if (const auto* return_stmt = std::get_if<TwoPy::Frontend::ReturnStmt>(&stmt.node)) {
             if (return_stmt->value) {
                 disassemble_expr(*return_stmt->value);
             } else {
@@ -59,15 +60,19 @@ namespace TwoPy::Backend {
                 return;
             }
 
-            m_curr_chunk->code.push_back({OpCode::RETURN});
+            m_curr_chunk->code.push_back({.opcode=OpCode::RETURN});
             m_curr_chunk->byte_offset += 2;
+        }
+
+        if (const auto* while_stmt = std::get_if<TwoPy::Frontend::WhileStmt>(&stmt.node)) {
+            disassemble_while(*while_stmt);
         }
     }
 
     void compiler::disassemble_body_stmt(const TwoPy::Frontend::Block& blk) {
         for (const auto& s : blk.statements) {
             disassemble_instruction(s);
-            m_curr_chunk->code.push_back({OpCode::POP});
+            m_curr_chunk->code.push_back({.opcode=OpCode::POP});
             m_curr_chunk->byte_offset += 2;
         }
 
@@ -124,21 +129,21 @@ namespace TwoPy::Backend {
 
 
     void compiler::disassemble_expr(const TwoPy::Frontend::ExprNode& expr) {
-        if (auto* callee = std::get_if<TwoPy::Frontend::CallExpr>(&expr.node)) {
+        if (const auto* callee = std::get_if<TwoPy::Frontend::CallExpr>(&expr.node)) {
             disassemble_callexpr_object(*callee);
         }
 
          /// NOTE: Okay as DerekT Suggested Nested Variants is a horrible idea and should never be used in production! 
         /// I'm going to fix this inside my Ast.hpp where there will be no more nested variants. 
-        if (auto* lits = std::get_if<TwoPy::Frontend::Literals>(&expr.node)) {
+        if (const auto* lits = std::get_if<TwoPy::Frontend::Literals>(&expr.node)) {
             disassemble_literals(*lits);
         }
 
-        if (auto* ops = std::get_if<TwoPy::Frontend::OperatorsType>(&expr.node)) {
+        if (const auto* ops = std::get_if<TwoPy::Frontend::OperatorsType>(&expr.node)) {
             disassemble_operators(*ops);
         }
 
-        if (auto* ident = std::get_if<TwoPy::Frontend::Identifier>(&expr.node)) {
+        if (const auto* ident = std::get_if<TwoPy::Frontend::Identifier>(&expr.node)) {
             disassemble_identifier_expr(*ident);
         }
     }
@@ -156,7 +161,7 @@ namespace TwoPy::Backend {
                 var_index = local_vars.at(iden.token.value);
             }
 
-            m_curr_chunk->code.push_back({OpCode::LOAD_FAST, var_index});
+            m_curr_chunk->code.push_back({.opcode=OpCode::LOAD_FAST, .argument=var_index});
             m_curr_chunk->byte_offset += 2;
         } else {
             if (!global_vars.contains(iden.token.value)) {
@@ -164,11 +169,10 @@ namespace TwoPy::Backend {
                 var_index = static_cast<std::uint8_t>(m_curr_chunk->names_pool.size() - 1);
                 global_vars.insert({iden.token.value, var_index});
             } else {
-                /// NOTE: .at() throws if it doesn't find the data
                 var_index = global_vars.at(iden.token.value);
             }
 
-            m_curr_chunk->code.push_back({OpCode::LOAD_NAME, var_index});
+            m_curr_chunk->code.push_back({.opcode=OpCode::LOAD_NAME, .argument=var_index});
             m_curr_chunk->byte_offset += 2;
         }    
     }
@@ -183,11 +187,10 @@ namespace TwoPy::Backend {
                 var_index = static_cast<std::uint8_t>(m_curr_chunk->names_pool.size() - 1);
                 local_vars.insert({iden.token.value, var_index});
             } else {
-                /// NOTE: .at() throws if it doesn't find the data
                 var_index = local_vars.at(iden.token.value);
             }
             
-            m_curr_chunk->code.push_back({OpCode::STORE_FAST, var_index});
+            m_curr_chunk->code.push_back({.opcode=OpCode::STORE_FAST, .argument=var_index});
             m_curr_chunk->byte_offset += 2;  
         } else { // Globals
             if (!global_vars.contains(iden.token.value)) {
@@ -195,17 +198,16 @@ namespace TwoPy::Backend {
                 var_index = static_cast<std::uint8_t>(m_curr_chunk->names_pool.size() - 1);
                 global_vars.insert({iden.token.value, var_index});
             } else {
-                /// NOTE: .at() throws if it doesn't find the data
                 var_index = global_vars.at(iden.token.value);
             }
             
-            m_curr_chunk->code.push_back({OpCode::STORE_NAME, var_index});
+            m_curr_chunk->code.push_back({.opcode=OpCode::STORE_NAME, .argument=var_index});
             m_curr_chunk->byte_offset += 2;  
         }
     }
 
     void compiler::disassemble_operators(const TwoPy::Frontend::OperatorsType& ops) {
-        if (auto* assign = std::get_if<TwoPy::Frontend::AssignmentOp>(&ops)) {
+        if (const auto* assign = std::get_if<TwoPy::Frontend::AssignmentOp>(&ops)) {
             if (assign->value) {
                 disassemble_expr(*assign->value);
             }
@@ -217,98 +219,108 @@ namespace TwoPy::Backend {
             }
         }
 
-        if (auto* term = std::get_if<TwoPy::Frontend::TermOp>(&ops)) {
+        if (const auto* term = std::get_if<TwoPy::Frontend::TermOp>(&ops)) {
             disassemble_expr(*term->left);
             disassemble_expr(*term->right);
 
             std::string op = term->op.value;
             if (op == "+") {
-                m_curr_chunk->code.push_back({OpCode::ADD});
+                m_curr_chunk->code.push_back({.opcode=OpCode::ADD});
                 m_curr_chunk->byte_offset += 2;
             } else if (op == "-") {
-                m_curr_chunk->code.push_back({OpCode::SUB});
+                m_curr_chunk->code.push_back({.opcode=OpCode::SUB});
                 m_curr_chunk->byte_offset += 2;
             }
             return;
         }
 
-        if (auto* factor = std::get_if<TwoPy::Frontend::FactorOp>(&ops)) {
+        if (const auto* factor = std::get_if<TwoPy::Frontend::FactorOp>(&ops)) {
             disassemble_expr(*factor->left);
             disassemble_expr(*factor->right);
 
             std::string op = factor->op.value;
             if (op == "*") {
-                m_curr_chunk->code.push_back({OpCode::MUL});
+                m_curr_chunk->code.push_back({.opcode=OpCode::MUL});
                 m_curr_chunk->byte_offset += 2;
             } else if (op == "/") {
-                m_curr_chunk->code.push_back({OpCode::DIV});
+                m_curr_chunk->code.push_back({.opcode=OpCode::DIV});
                 m_curr_chunk->byte_offset += 2;
             } else if (op == "%") {
-                m_curr_chunk->code.push_back({OpCode::BINARY_MODULO});
+                m_curr_chunk->code.push_back({.opcode=OpCode::BINARY_MODULO});
                 m_curr_chunk->byte_offset += 2;
             } else if (op == "//") {
-                m_curr_chunk->code.push_back({OpCode::BINARY_FLOOR_DIVIDE});
+                m_curr_chunk->code.push_back({.opcode=OpCode::BINARY_FLOOR_DIVIDE});
                 m_curr_chunk->byte_offset += 2;
             }
 
             return;
         }
 
-        if (auto* compare = std::get_if<TwoPy::Frontend::EqualityOp>(&ops)) {
+        if (const auto* compare = std::get_if<TwoPy::Frontend::ComparisonOp>(&ops)) {
             disassemble_expr(*compare->left);
             disassemble_expr(*compare->right);
 
-            m_curr_chunk->code.push_back({OpCode::COMPARE_OP});
+            m_curr_chunk->code.push_back({.opcode=OpCode::COMPARE_OP});
+            m_curr_chunk->byte_offset += 2; 
+           
+            return;
+        }
+
+        if (const auto* compare = std::get_if<TwoPy::Frontend::EqualityOp>(&ops)) {
+            disassemble_expr(*compare->left);
+            disassemble_expr(*compare->right);
+
+            m_curr_chunk->code.push_back({.opcode=OpCode::COMPARE_OP});
             m_curr_chunk->byte_offset += 2;
 
             return;
         } 
  
-        if (auto* _and = std::get_if<TwoPy::Frontend::AndOp>(&ops)) {
+        if (const auto* _and = std::get_if<TwoPy::Frontend::AndOp>(&ops)) {
             disassemble_and_expr(*_and);
         }
 
-        if (auto* _or = std::get_if<TwoPy::Frontend::OrOp>(&ops)) {
+        if (const auto* _or = std::get_if<TwoPy::Frontend::OrOp>(&ops)) {
             disassemble_or_expr(*_or);
         } 
     }
 
     void compiler::disassemble_literals(const TwoPy::Frontend::Literals& lits) {
-        if (auto* int_lit = std::get_if<TwoPy::Frontend::IntegerLiteral>(&lits)) {
+        if (const auto* int_lit = std::get_if<TwoPy::Frontend::IntegerLiteral>(&lits)) {
             m_curr_chunk->consts_pool.emplace_back(std::stol(int_lit->token.value));
-            std::uint8_t const_index = static_cast<std::uint8_t>(m_curr_chunk->consts_pool.size() - 1);
+            auto const_index = static_cast<std::uint8_t>(m_curr_chunk->consts_pool.size() - 1);
 
-            m_curr_chunk->code.push_back({OpCode::LOAD_CONSTANT, const_index});
+            m_curr_chunk->code.push_back({.opcode=OpCode::LOAD_CONSTANT, .argument=const_index});
             m_curr_chunk->byte_offset += 2;
             return;
         }
 
-        if (auto* float_lit = std::get_if<TwoPy::Frontend::FloatLiteral>(&lits)) {
+        if (const auto* float_lit = std::get_if<TwoPy::Frontend::FloatLiteral>(&lits)) {
             m_curr_chunk->consts_pool.emplace_back(std::stod(float_lit->token.value));
-            std::uint8_t const_index = static_cast<std::uint8_t>(m_curr_chunk->consts_pool.size() - 1);
+            auto const_index = static_cast<std::uint8_t>(m_curr_chunk->consts_pool.size() - 1);
 
-            m_curr_chunk->code.push_back({OpCode::LOAD_CONSTANT, const_index});
+            m_curr_chunk->code.push_back({.opcode=OpCode::LOAD_CONSTANT, .argument=const_index});
             m_curr_chunk->byte_offset += 2;
             return;
         }
 
-        if (auto* string_lit = std::get_if<TwoPy::Frontend::StringLiteral>(&lits)) {
+        if (const auto* string_lit = std::get_if<TwoPy::Frontend::StringLiteral>(&lits)) {
             auto str_obj = std::make_shared<StringPyObject>(string_lit->token.value);
 
             m_curr_chunk->consts_pool.emplace_back(str_obj);
 
-            std::uint8_t const_index = static_cast<std::uint8_t>(m_curr_chunk->consts_pool.size() - 1);
+            auto const_index = static_cast<std::uint8_t>(m_curr_chunk->consts_pool.size() - 1);
 
-            m_curr_chunk->code.push_back({OpCode::LOAD_CONSTANT, const_index});
+            m_curr_chunk->code.push_back({.opcode=OpCode::LOAD_CONSTANT, .argument=const_index});
             m_curr_chunk->byte_offset += 2;
             return;
         }
 
-        if (auto* bool_lit = std::get_if<TwoPy::Frontend::BoolLiteral>(&lits)) {
+        if (const auto* bool_lit = std::get_if<TwoPy::Frontend::BoolLiteral>(&lits)) {
             m_curr_chunk->consts_pool.emplace_back(bool_lit->token.value == "True");
-            std::uint8_t const_index = static_cast<std::uint8_t>(m_curr_chunk->consts_pool.size() - 1);
+            auto const_index = static_cast<std::uint8_t>(m_curr_chunk->consts_pool.size() - 1);
 
-            m_curr_chunk->code.push_back({OpCode::LOAD_CONSTANT, const_index});
+            m_curr_chunk->code.push_back({.opcode=OpCode::LOAD_CONSTANT, .argument=const_index});
             m_curr_chunk->byte_offset += 2;
 
             return; 
@@ -318,24 +330,25 @@ namespace TwoPy::Backend {
     /// TODO: Since I'm Lazy, I forgot to add STORE/LOAD_FAST for local vars 
     void compiler::disassemble_function_object(const TwoPy::Frontend::FunctionDef& function) {
         auto func_chunk = std::make_shared<Chunk>();
-        auto saved_chunk = std::make_shared<Chunk>();
 
         m_bytecode_program.chunks.push_back(func_chunk);
-        std::uint8_t func_chunk_index = static_cast<std::uint8_t>(m_bytecode_program.chunks.size() - 1);
+        auto func_chunk_index = static_cast<std::uint8_t>(m_bytecode_program.chunks.size() - 1);
 
-        /* I realize that shared_ptr doesn't copy the data and this only moves the ref counter
-           but this would be a good habit that copying structs is a bad idea. */
-        saved_chunk = std::move(m_curr_chunk);
-        m_curr_chunk = std::move(func_chunk);
+        /* 
+            ! old way of using shared_ptr had a cost 
+        */
+        Chunk* saved_chunk = m_curr_chunk;
+        m_curr_chunk = func_chunk.get(); 
 
         init_scope();
         for (const auto& stmt : function.body.statements) {
             disassemble_instruction(stmt);
         }
 
-        m_curr_chunk = std::move(saved_chunk);
+        m_curr_chunk = saved_chunk;
 
         std::vector<std::string> param_names;
+        param_names.reserve(function.params.params.size());
         for (const auto& param : function.params.params) {
             param_names.push_back(param.token.value);
         }
@@ -345,20 +358,20 @@ namespace TwoPy::Backend {
         );
         end_scope();
 
-        std::uint8_t code_index = static_cast<std::uint8_t>(m_curr_chunk->consts_pool.size());
+        auto code_index = static_cast<std::uint8_t>(m_curr_chunk->consts_pool.size());
         m_curr_chunk->consts_pool.emplace_back(func_obj);
 
-        m_curr_chunk->code.push_back({OpCode::LOAD_CONSTANT, code_index});
+        m_curr_chunk->code.push_back({.opcode=OpCode::LOAD_CONSTANT, .argument=code_index});
         m_curr_chunk->byte_offset += 2;
 
         auto name_obj = std::make_shared<StringPyObject>(function.token.value);
-        std::uint8_t name_index = static_cast<std::uint8_t>(m_curr_chunk->consts_pool.size());
+        auto name_index = static_cast<std::uint8_t>(m_curr_chunk->consts_pool.size());
 
         m_curr_chunk->consts_pool.emplace_back(name_obj);
-        m_curr_chunk->code.push_back({OpCode::LOAD_CONSTANT, name_index});
+        m_curr_chunk->code.push_back({.opcode=OpCode::LOAD_CONSTANT, .argument=name_index});
         m_curr_chunk->byte_offset += 2;
 
-        m_curr_chunk->code.push_back({OpCode::MAKE_FUNCTION, 0});
+        m_curr_chunk->code.push_back({.opcode=OpCode::MAKE_FUNCTION, .argument=0});
         m_curr_chunk->byte_offset += 2;
 
         std::uint8_t var_index;
@@ -370,7 +383,7 @@ namespace TwoPy::Backend {
             var_index = global_vars.at(function.token.value);
         }
         
-        m_curr_chunk->code.push_back({OpCode::STORE_NAME, var_index});
+        m_curr_chunk->code.push_back({.opcode=OpCode::STORE_NAME, .argument=var_index});
         m_curr_chunk->byte_offset += 2;
 
         m_curr_chunk->consts_pool.emplace_back(name_obj);
@@ -384,8 +397,8 @@ namespace TwoPy::Backend {
             disassemble_expr(*arg);
         }
 
-        std::uint8_t arg_count = static_cast<std::uint8_t>(callee.arguments.size());
-        m_curr_chunk->code.push_back({OpCode::CALL_FUNCTION, arg_count});
+        auto arg_count = static_cast<std::uint8_t>(callee.arguments.size());
+        m_curr_chunk->code.push_back({.opcode=OpCode::CALL_FUNCTION, .argument=arg_count});
         m_curr_chunk->byte_offset += 2;
     }
 
@@ -404,4 +417,28 @@ namespace TwoPy::Backend {
 
         disassemble_expr(*p_or.right);
     } 
+
+    void compiler::disassemble_while(const TwoPy::Frontend::WhileStmt& p_while) {
+        auto start = static_cast<std::uint8_t>(m_curr_chunk->byte_offset);
+        disassemble_expr(*p_while.condition);
+
+        auto jmp = emit_jump(OpCode::POP_JUMP_IF_FALSE);
+
+        for (auto tj : truthy_jumps) {
+            patch_jump(tj);
+        }
+        truthy_jumps.clear();
+
+        disassemble_body_while_stmt(p_while.body);
+
+        m_curr_chunk->code.push_back({.opcode=OpCode::JUMP_BACKWARD, .argument=start});
+        m_curr_chunk->byte_offset += 2;
+        
+        patch_jump(jmp);
+
+        for (auto pj : pending_jumps) {
+            patch_jump(pj);
+        }
+        pending_jumps.clear();
+    }
 }

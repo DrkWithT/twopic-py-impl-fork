@@ -1,29 +1,8 @@
-c = 1
-i = 0
-j = 0
 x = [1, 2, 3]
 
-while c:
-    print("hello")
-
-for i in x:
-    i += 1
-    j = 0
-    z = 1
-    if i:
-        break
-    elif j:
-        continue
-    else:
-        z
-
-for i in range(100):
+for i in range(10):
     print(i)
 
-while i:
-    if i:
-        break
-    elif j:
-        continue
-    else:
-        z
+j = 0
+while j < 10:
+    j += 1

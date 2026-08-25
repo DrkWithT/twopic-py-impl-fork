@@ -69,7 +69,7 @@ namespace TwoPy::Backend {
             } else if (std::holds_alternative<py_object_ptr>(m_data)) {
                 return std::get<py_object_ptr>(m_data) != nullptr;
             } else if (std::holds_alternative<bool>(m_data)) {
-                return std::get<bool>(m_data) != false;
+                return std::get<bool>(m_data);
             }
             return false;
         }
@@ -77,9 +77,10 @@ namespace TwoPy::Backend {
         [[nodiscard]] constexpr long to_long(this auto&& self) noexcept {
             if (std::holds_alternative<long>(self.m_data)) {
                 return std::get<long>(self.m_data);
-            } else if (std::holds_alternative<double>(self.m_data)) {
+            } 
+            if (std::holds_alternative<double>(self.m_data)) {
                 return std::get<double>(self.m_data);
-            } else if (std::holds_alternative<Reference>(self.m_data)) {
+            } if (std::holds_alternative<Reference>(self.m_data)) {
                 return std::get<Reference>(self.m_data)->to_long();
             }
 
@@ -89,9 +90,13 @@ namespace TwoPy::Backend {
         [[nodiscard]] constexpr double to_double(this auto&& self) noexcept {
             if (std::holds_alternative<long>(self.m_data)) {
                 return std::get<long>(self.m_data);
-            } else if (std::holds_alternative<double>(self.m_data)) {
+            } 
+            
+            if (std::holds_alternative<double>(self.m_data)) {
                 return std::get<double>(self.m_data);
-            } else if (std::holds_alternative<Reference>(self.m_data)) {
+            } 
+            
+            if (std::holds_alternative<Reference>(self.m_data)) {
                 return std::get<Reference>(self.m_data)->to_double();
             }
 
@@ -101,24 +106,33 @@ namespace TwoPy::Backend {
         [[nodiscard]] std::string to_string(this auto&& self) {
             if (std::holds_alternative<std::monostate>(self.m_data)) {
                 return "None";
-            } else if (std::holds_alternative<long>(self.m_data)) {
+            } 
+            
+            if (std::holds_alternative<long>(self.m_data)) {
                 return std::to_string(std::get<long>(self.m_data));
-            } else if (std::holds_alternative<double>(self.m_data)) {
+            } 
+            
+            if (std::holds_alternative<double>(self.m_data)) {
                 return std::to_string(std::get<double>(self.m_data));
-            } else if (std::holds_alternative<Reference>(self.m_data)) {
+            } 
+            
+            if (std::holds_alternative<Reference>(self.m_data)) {
                 return std::get<Reference>(self.m_data)->to_string();
-            } else if (std::holds_alternative<py_object_ptr>(self.m_data)) {
+            } 
+            
+            if (std::holds_alternative<py_object_ptr>(self.m_data)) {
                 auto obj = std::get<py_object_ptr>(self.m_data);
                 if (obj) {
                     return obj->stringify();
                 }
                 return "<null>";
             }
+
             return "";
         }
 
         [[nodiscard]] constexpr Reference ref() const noexcept {
-            if (auto reference_p = std::get_if<Reference>(&m_data); reference_p) {
+            if (const auto *reference_p = std::get_if<Reference>(&m_data); reference_p) {
                 return *reference_p;
             }
 
@@ -130,7 +144,7 @@ namespace TwoPy::Backend {
         }
 
         [[nodiscard]] constexpr py_object_ptr obj_ref() const noexcept {
-            if (auto py_object_p = std::get_if<py_object_ptr>(&m_data); py_object_p) {
+            if (const auto *py_object_p = std::get_if<py_object_ptr>(&m_data); py_object_p) {
                 return *py_object_p;
             }
 

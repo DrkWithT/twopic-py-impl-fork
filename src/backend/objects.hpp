@@ -29,7 +29,7 @@ namespace TwoPy::Backend {
     struct ObjectBase {
         virtual ~ObjectBase() = default;
 
-        virtual ObjectTag tag() const noexcept = 0;
+        [[nodiscard]] virtual ObjectTag tag() const noexcept = 0;
 
         /* Indexing */
         /// NOTE: immutable accessor for impl. of __get__
@@ -45,7 +45,7 @@ namespace TwoPy::Backend {
        /// Useful for printing out debug stmts inside the bytecode print
         virtual std::string stringify() = 0;
 
-        virtual bool is_truthy() const noexcept = 0;
+        [[nodiscard]] virtual bool is_truthy() const noexcept = 0;
     };
 
     class FunctionPyObject : public ObjectBase {
@@ -58,7 +58,7 @@ namespace TwoPy::Backend {
             explicit FunctionPyObject(std::string name, std::vector<std::string> params, std::uint8_t chunk_index)
                 : m_name(std::move(name)), m_params(std::move(params)), m_chunk_index(chunk_index) {}
 
-            ObjectTag tag() const noexcept override {
+            [[nodiscard]] ObjectTag tag() const noexcept override {
                 return ObjectTag::FUNCTION;
             }
 
@@ -93,7 +93,7 @@ namespace TwoPy::Backend {
         public:
             explicit StringPyObject(std::string data) : m_data(std::move(data)) {}
 
-            ObjectTag tag() const noexcept override {
+            [[nodiscard]] ObjectTag tag() const noexcept override {
                 return ObjectTag::STRING;
             }
 
@@ -111,7 +111,7 @@ namespace TwoPy::Backend {
             }
 
             // Empty strings are falsy, non-empty strings are truthy (Python behavior)
-            bool is_truthy() const noexcept override {
+            [[nodiscard]] bool is_truthy() const noexcept override {
                 return !m_data.empty();
             }
     };
