@@ -59,7 +59,6 @@ namespace TwoPy::Frontend {
     struct Block;
     struct ExpressionStmt;
 
-    /* why is std::variant such a pain to debug */
     using Literals = std::variant<IntegerLiteral, FloatLiteral, StringLiteral, BoolLiteral>;
     using OperatorsType = std::variant<AssignmentOp, AugmentedAssignmentOp, FactorOp, 
             TermOp, BitwiseOp, EqualityOp, ComparisonOp, PowerOp, OrOp, AndOp>;

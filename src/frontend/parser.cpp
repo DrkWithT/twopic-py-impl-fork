@@ -1,6 +1,5 @@
 #include <memory>
 #include <stdexcept>
-#include <format>
 
 #include "frontend/parser.hpp"
 #include "frontend/ast.hpp"
@@ -37,10 +36,6 @@ token_class& parser_class::current_token() {
 
 token_class& parser_class::previous_token() {
     return tokens[m_previous_pos];
-}
-
-bool parser_class::match(const token_type& type) {
-    return type == current_token().type;
 }
 
 bool parser_class::is_at_end() {
@@ -517,10 +512,7 @@ ExprPtr parser_class::parse_assignment() {
         return assign_node;
     } 
     
-    if (match(token_type::PLUS_EQUAL) ||
-               match(token_type::MINUS_EQUAL) ||
-               match(token_type::STAR_EQUAL) ||
-               match(token_type::SLASH_EQUAL)) {
+    if (match(token_type::PLUS_EQUAL, token_type::MINUS_EQUAL, token_type::STAR_EQUAL, token_type::SLASH_EQUAL)) {
         token_class op = current_token();
         consume(current_token().type);
 
