@@ -149,7 +149,52 @@ namespace TwoPy::Backend {
             }
 
             return nullptr;
-        }           
+        }
+
+        [[nodiscard]]
+        constexpr bool operator<(const Value& rhs) const noexcept {
+            if (m_data.index() != rhs.m_data.index()) {
+                return false; // todo: throw TypeError instead
+            }
+
+            if (std::holds_alternative<long>(m_data)) {
+                return std::get<long>(m_data) < std::get<long>(rhs.m_data);
+            } else if (std::holds_alternative<double>(m_data)) {
+                return std::get<double>(m_data) < std::get<double>(rhs.m_data);
+            } else {
+                return false;
+            }
+        }
+
+        [[nodiscard]]
+        constexpr bool operator>(const Value& rhs) const noexcept {
+            if (m_data.index() != rhs.m_data.index()) {
+                return false; // todo: throw TypeError instead
+            }
+
+            if (std::holds_alternative<long>(m_data)) {
+                return std::get<long>(m_data) > std::get<long>(rhs.m_data);
+            } else if (std::holds_alternative<double>(m_data)) {
+                return std::get<double>(m_data) > std::get<double>(rhs.m_data);
+            } else {
+                return false;
+            }
+        }
+
+        [[nodiscard]]
+        constexpr bool operator==(const Value& rhs) const noexcept {
+            if (m_data.index() != rhs.m_data.index()) {
+                return false; // todo: throw TypeError instead
+            }
+
+            if (std::holds_alternative<long>(m_data)) {
+                return std::get<long>(m_data) == std::get<long>(rhs.m_data);
+            } else if (std::holds_alternative<double>(m_data)) {
+                return std::get<double>(m_data) == std::get<double>(rhs.m_data);
+            } else {
+                return false;
+            }
+        }
 
         /* Derkt told me this will be useful for when I start making my vm and it needs to pop and push items*/
 /* 
