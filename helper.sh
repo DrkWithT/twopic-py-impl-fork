@@ -3,7 +3,7 @@
 action="$1";
 
 if [[ $action = "help" ]]; then
-    printf "USAGE:\\n\\thelper.sh [build | rebuild] <preset-name> <generator>\\n";
+    printf "USAGE:\\n\\thelper.sh [build | rebuild] <preset-name> <generator>\\nPresets: debug-build, release-build\\n";
     exit 0;
 elif [[ $action = "build" ]]; then
     cmake -S . -B build --preset "$2" -G "$3" && cmake --build build && cp ./build/compile_commands.json .;
