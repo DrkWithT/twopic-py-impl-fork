@@ -14,6 +14,11 @@ void show_usage(const char* process_path) {
     std::print(stderr, "Example: {} test.py\n", process_path);
 }
 
+/* 
+    ! Multi-pass 
+    * lexer -> parser -> compiler -> Vm
+ */
+
 int main(int argc, char* argv[]) {
     if (argc < 2 || argc > 3) {
         show_usage(argv[0]);
@@ -61,7 +66,7 @@ int main(int argc, char* argv[]) {
         TwoPy::Backend::VM py_vm(bytecode_program);
         auto result = py_vm.run();
 
-        if (result == TwoPy::Backend::VM::Result::RUNTIME_ERROR) {
+        if (result == TwoPy::Backend::Result::RUNTIME_ERROR) {
             throw std::runtime_error("Runtime logic bug");
         }  
         

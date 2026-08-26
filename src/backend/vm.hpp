@@ -1,38 +1,39 @@
 #ifndef VM_HPP
 #define VM_HPP
 
+#include <optional>
 #include <stack>
 #include <cstddef>
 #include <vector>
 #include <flat_map>
 #include <string>
 
+#include "backend/opcode.hpp"
 #include "backend/value.hpp"
 #include "backend/bytecode.hpp"
 
-/// NOTE: immutable accessor for impl. of __get__
+/* 
+    ! Notes 
 
-// Instruction Pointer 
-// Next instruction to execute
-// Controls program flow
-
-// Stack Pointer
-// Top of the stack 
-// Push/pop operations
-
-// Base Pointer
-// Start of the current stack frame
-// Access local variables & arguments
+    The old vm was wrong where it took in a stack of Value. This isn't how a proper call stack where the stack takes in callframes.
+    I haven't handled recursion yet. 
+*/
 
 namespace TwoPy::Backend {
+    struct CallFrame {
+        std::size_t caller_bp;
+        std::optional<std::size_t> callee_bp;
+        Instruction* caller_ip;
+        std::size_t caller_chunk_id;
+    };
+
+    enum class Result : std::uint8_t {
+        OK,
+        RUNTIME_ERROR,
+        COMPILER_ERROR,
+    };
+
     class VM {
-        public:
-            enum class Result : std::uint8_t {
-                OK,
-                RUNTIME_ERROR,
-                COMPILER_ERROR,
-            };
-            
         private:
             const ByteCodeProgram& m_prgm {};
             

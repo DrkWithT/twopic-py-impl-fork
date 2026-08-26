@@ -18,7 +18,7 @@ namespace TwoPy::Backend {
 
     enum class ObjectTag : uint8_t {
         NONE,       // non-object
-        // LIST,
+        LIST,
         // DICT,
         // CLASS,
         FUNCTION,   // callable object

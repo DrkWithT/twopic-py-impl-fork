@@ -196,36 +196,6 @@ namespace TwoPy::Backend {
             }
         }
 
-        /* Derkt told me this will be useful for when I start making my vm and it needs to pop and push items*/
-/* 
-        Value operator+(const Value& other) {
-            switch (m_tag) {
-            case ValueTag::NONE: return Value {};
-            case ValueTag::BOOL:
-            case ValueTag::INT: return std::get<long>(m_data) != 0L;
-            case ValueTag::FLOAT: return std::get<double>(m_data) != 0.0;
-            case ValueTag::REF: return std::get<Reference>(m_data) != nullptr;
-            case ValueTag::OBJ: return std::get<py_object_ptr>(m_data) != nullptr; // add abstract is_truthy() method for any ObjectBase behind py_object_ptr
-            default: return false;
-            }
-
-            return *this;
-        }
-
-        Value operator-(const Value& other) {
-            switch (m_tag) {
-            case ValueTag::NONE: return Value {};
-            case ValueTag::BOOL:
-            case ValueTag::INT: return std::get<long>(m_data) != 0L;
-            case ValueTag::FLOAT: return std::get<double>(m_data) != 0.0;
-            case ValueTag::REF: return std::get<Reference>(m_data) != nullptr;
-            case ValueTag::OBJ: return std::get<py_object_ptr>(m_data) != nullptr; // add abstract is_truthy() method for any ObjectBase behind py_object_ptr
-            default: return false;
-            }
-
-            return *this;
-        } */
-
         /// TODO: add  %, *, and / overloads with div_int()...
     };
 }

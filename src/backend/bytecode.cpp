@@ -133,8 +133,6 @@ namespace TwoPy::Backend {
             disassemble_callexpr_object(*callee);
         }
 
-         /// NOTE: Okay as DerekT Suggested Nested Variants is a horrible idea and should never be used in production! 
-        /// I'm going to fix this inside my Ast.hpp where there will be no more nested variants. 
         if (const auto* lits = std::get_if<TwoPy::Frontend::Literals>(&expr.node)) {
             disassemble_literals(*lits);
         }
@@ -223,7 +221,7 @@ namespace TwoPy::Backend {
             disassemble_expr(*term->left);
             disassemble_expr(*term->right);
 
-            std::string op = term->op.value;
+            const auto& op = term->op.value;
             if (op == "+") {
                 m_curr_chunk->code.push_back({.opcode=OpCode::ADD});
                 m_curr_chunk->byte_offset += 2;
@@ -238,7 +236,7 @@ namespace TwoPy::Backend {
             disassemble_expr(*factor->left);
             disassemble_expr(*factor->right);
 
-            std::string op = factor->op.value;
+            const auto& op = factor->op.value;
             if (op == "*") {
                 m_curr_chunk->code.push_back({.opcode=OpCode::MUL});
                 m_curr_chunk->byte_offset += 2;
@@ -288,7 +286,7 @@ namespace TwoPy::Backend {
     void compiler::disassemble_literals(const TwoPy::Frontend::Literals& lits) {
         if (const auto* int_lit = std::get_if<TwoPy::Frontend::IntegerLiteral>(&lits)) {
             m_curr_chunk->consts_pool.emplace_back(std::stol(int_lit->token.value));
-            auto const_index = static_cast<std::uint8_t>(m_curr_chunk->consts_pool.size() - 1);
+            const auto const_index = static_cast<std::uint8_t>(m_curr_chunk->consts_pool.size() - 1);
 
             m_curr_chunk->code.push_back({.opcode=OpCode::LOAD_CONSTANT, .argument=const_index});
             m_curr_chunk->byte_offset += 2;
@@ -309,7 +307,7 @@ namespace TwoPy::Backend {
 
             m_curr_chunk->consts_pool.emplace_back(str_obj);
 
-            auto const_index = static_cast<std::uint8_t>(m_curr_chunk->consts_pool.size() - 1);
+            const auto const_index = static_cast<std::uint8_t>(m_curr_chunk->consts_pool.size() - 1);
 
             m_curr_chunk->code.push_back({.opcode=OpCode::LOAD_CONSTANT, .argument=const_index});
             m_curr_chunk->byte_offset += 2;
@@ -365,7 +363,7 @@ namespace TwoPy::Backend {
         m_curr_chunk->byte_offset += 2;
 
         auto name_obj = std::make_shared<StringPyObject>(function.token.value);
-        auto name_index = static_cast<std::uint8_t>(m_curr_chunk->consts_pool.size());
+        const auto name_index = static_cast<std::uint8_t>(m_curr_chunk->consts_pool.size());
 
         m_curr_chunk->consts_pool.emplace_back(name_obj);
         m_curr_chunk->code.push_back({.opcode=OpCode::LOAD_CONSTANT, .argument=name_index});

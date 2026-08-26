@@ -5,3 +5,4 @@ lexical_analyzer
 .cache
 .clangd
 compile_commands.json
+.clang-tidy
