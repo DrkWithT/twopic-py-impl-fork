@@ -29,7 +29,7 @@ namespace TwoPy::Backend {
         STORE_FAST, // Local vars
         STORE_NAME, // Stuff like Classes, Functions, Dicts, Lists, etc etc
 
-        COMPARE_OP, // != == < > 
+        COMPARE_OP, // 0: '<', 1: '<=', 2: '==', 3: '!=', 4: '>', 5: '>='
 
         POP_JUMP_IF_FALSE, // AND stops if the first value is true
         POP_JUMP_IF_TRUE, // OR stops if the first value is true

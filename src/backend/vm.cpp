@@ -1,30 +1,31 @@
 #include "backend/vm.hpp"
 
 #include <print>
-#include <stdexcept>
+// #include <stdexcept>
 
 namespace TwoPy::Backend {
     VM::VM(const ByteCodeProgram& prgm) : m_prgm(prgm) {
         m_bp = m_prgm.chunks[0].get();
-        m_instrutions = m_bp->code;
+        m_code = m_bp->code;
         m_frame_count = prgm.chunks.size();
     }
 
     VM::Result VM::run() {
-        while (m_ip < m_instrutions.size()) {
-            Instruction instr = m_instrutions[m_ip];
-            m_ip++;
+        // ! MUST-FIX: This loop may be incorrect, as the condition only assumes 1 chunk of bytecode is dispatched in a forward direction only. What if control enters another function's chunk? What if we jump by a relative offset backwards? etc.
+        while (m_ip < m_code.size()) {
+            Instruction instr = m_code[m_ip];
             switch (instr.opcode) {
+                // ! MUST-FIX: The return opcode here doesn't account for leaving a result on the stack. Also, if the VM stack was a pre-allocated, random-access vector with an SP, the VM can be optimized further.
                 case OpCode::RETURN: {
+                    m_ip++;
                     return Result::OK;
                 }
-
                 /* Pushes to stack */
                 case OpCode::LOAD_CONSTANT: {
                     vm_stack.push(m_bp->consts_pool[instr.argument]);
+                    m_ip++;
                     break;
                 }
-
                 case OpCode::ADD: {
                     Value rhs = vm_stack.top();
                     vm_stack.pop();
@@ -37,9 +38,9 @@ namespace TwoPy::Backend {
                     } else {
                         vm_stack.push(Value(lhs.to_double() + rhs.to_double()));
                     }
+                    m_ip++;
                     break;
                 }
-
                 case OpCode::SUB: {
                     Value rhs = vm_stack.top();
                     vm_stack.pop();
@@ -52,9 +53,9 @@ namespace TwoPy::Backend {
                     } else {
                         vm_stack.push(Value(lhs.to_double() - rhs.to_double()));
                     }
+                    m_ip++;
                     break;
                 }
-
                 case OpCode::MUL: {
                     Value rhs = vm_stack.top();
                     vm_stack.pop();
@@ -67,9 +68,9 @@ namespace TwoPy::Backend {
                     } else {
                         vm_stack.push(Value(lhs.to_double() * rhs.to_double()));
                     }
+                    m_ip++;
                     break;
                 }
-
                 case OpCode::DIV: {
                     Value rhs = vm_stack.top();
                     vm_stack.pop();
@@ -78,15 +79,15 @@ namespace TwoPy::Backend {
                     vm_stack.pop();
 
                     vm_stack.push(Value(lhs.to_double() / rhs.to_double()));
+                    m_ip++;
                     break;
                 }
-
                 /* gets rid of None Value */
                 case OpCode::POP: {
                     vm_stack.pop();
+                    m_ip++;
                     break;
                 }
-
                  /* Pops from stack */
                 case OpCode::STORE_NAME: {
                     auto name = vm_stack.top();
@@ -94,26 +95,41 @@ namespace TwoPy::Backend {
 
                     std::string key = m_bp->names_pool[instr.argument];
                     global_vars.insert_or_assign(key, name);
+                    m_ip++;
                     break;
                 }
+                case OpCode::COMPARE_OP: {
+                    const std::uint8_t cmp_id = m_code[m_ip].argument;
 
+                    const Value lhs = vm_stack.top();
+                    vm_stack.pop();
+
+                    const Value rhs = vm_stack.top();
+                    vm_stack.pop();
+
+                    vm_stack.push(Value {help_compare(cmp_id, lhs, rhs)});
+
+                    m_ip++;
+                    break;
+                }
                 /* Pushes to stack */
                 case OpCode::LOAD_NAME: {
-                    std::string var_name = m_bp->names_pool[instr.argument];
+                    const std::string& var_name = m_bp->names_pool[instr.argument];
                     
                     auto it = global_vars.find(var_name);
                     if (it != global_vars.end()) {
                         vm_stack.push(it->second);
                     } else if (var_name == "print") {
+                        // ! MUST-FIX: Any built-in function should be resolved by its name at compile time / be cleanly looked up via global hashtable. A large if statement here would get messy later on.
                         auto builtin = std::make_shared<FunctionPyObject>("print", std::vector<std::string>{}, 0);
                         vm_stack.push(Value(builtin));
                     } else {
                         return Result::RUNTIME_ERROR;
                     }
 
+                    m_ip++;
                     break;
-                } 
-
+                }
                 case OpCode::CALL_FUNCTION: {
                     std::uint8_t arg_count = instr.argument;
 
@@ -137,11 +153,34 @@ namespace TwoPy::Backend {
                             vm_stack.emplace();
                         }
                     }
+                    m_ip++;
                     break;
                 }
-
-                default:
+                case OpCode::POP_JUMP_IF_FALSE: {
+                    if (const auto& tos = vm_stack.top(); !tos.is_truthy()) {
+                        vm_stack.pop();
+                        m_ip = m_code[m_ip].argument;
+                    } else {
+                        vm_stack.pop();
+                        m_ip++;
+                    }
                     break;
+                }
+                case OpCode::POP_JUMP_IF_TRUE: {
+                    if (const auto& tos = vm_stack.top(); tos.is_truthy()) {
+                        vm_stack.pop();
+                        m_ip = m_code[m_ip].argument;
+                    } else {
+                        vm_stack.pop();
+                        m_ip++;
+                    }
+                    break;
+                }
+                case OpCode::JUMP_BACKWARD: {
+                    m_ip = m_code[m_ip].argument;
+                    break;
+                }
+                default: break;
             }
         }
         return Result::OK;

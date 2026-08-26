@@ -43,13 +43,25 @@ namespace TwoPy::Backend {
 
             // stores runtime consts/values 
             std::stack<Value> vm_stack {};
-            std::vector<Instruction> m_instrutions {};
+            std::vector<Instruction> m_code {};
 
             // Also called program counters 
             std::size_t m_ip {};
 
             // Base Pointer (EBP)
             Chunk* m_bp {};
+
+            [[nodiscard]]
+            constexpr bool help_compare(std::uint8_t cmp_id, const Value& lhs, const Value& rhs) {
+                switch (cmp_id) {
+                    case 0: return lhs < rhs; // <
+                    case 1: return !(lhs > rhs); // <=
+                    case 2: return lhs == rhs; // ==
+                    case 3: return lhs != rhs; // !=
+                    case 4: return lhs > rhs; // >
+                    case 5: default: return !(lhs < rhs); // >=
+                }
+            }
 
         public:
             VM(const ByteCodeProgram& prgm);        

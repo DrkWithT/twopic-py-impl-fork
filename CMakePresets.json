@@ -6,11 +6,9 @@
     },
     "configurePresets": [
         {
-            "name": "general-debug-build",
-            "binaryDir": "${sourceDir}/build/general-debug-build",
+            "name": "debug-build",
+            "binaryDir": "${sourceDir}/build/debug-build",
             "cacheVariables": {
-                "CMAKE_C_COMPILER": "clang",
-                "CMAKE_CXX_COMPILER": "clang++",
                 "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
                 "CMAKE_CXX_STANDARD": "26",
                 "CMAKE_CXX_EXTENSIONS": "OFF",
@@ -21,8 +19,8 @@
             }
         },
         {
-            "name": "general-release-build",
-            "binaryDir": "${sourceDir}/build/general-release-build",
+            "name": "release-build",
+            "binaryDir": "${sourceDir}/build/release-build",
             "cacheVariables": {
                 "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
                 "CMAKE_CXX_STANDARD": "26",
@@ -30,49 +28,6 @@
                 "CMAKE_BUILD_TYPE": "Release",
                 "CMAKE_COMPILE_WARNING_AS_ERROR": "ON",
                 "PROJECT_SRC_DIR": "${sourceDir}/src/"
-            }
-        },
-        {
-            "name": "clang-debug-build",
-            "generator": "Ninja",
-            "cacheVariables": {
-                "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
-                "CMAKE_CXX_STANDARD": "26",
-                "CMAKE_CXX_EXTENSIONS": "OFF",
-                "CMAKE_BUILD_TYPE": "Debug",
-                "CMAKE_COMPILE_WARNING_AS_ERROR": "ON",
-                "PROJECT_SRC_DIR": "${sourceDir}/src/",
-                "LLVM_LIBRARY_DIR": "/usr/local/opt/llvm/lib/",
-                "CMAKE_RUNTIME_OUTPUT_DIRECTORY": "${sourceDir}/build/"
-            }
-        },
-        {
-            "name": "clang-release-build",
-            "generator": "Ninja",
-            "cacheVariables": {
-                "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
-                "CMAKE_CXX_STANDARD": "26",
-                "CMAKE_CXX_EXTENSIONS": "OFF",
-                "CMAKE_BUILD_TYPE": "Release",
-                "CMAKE_COMPILE_WARNING_AS_ERROR": "ON",
-                "PROJECT_SRC_DIR": "${sourceDir}/src/",
-                "LLVM_LIBRARY_DIR": "/usr/local/opt/llvm/lib/",
-                "CMAKE_RUNTIME_OUTPUT_DIRECTORY": "${sourceDir}/build/"
-            }
-        },
-        {
-            "name": "clang-profile-build",
-            "generator": "Ninja",
-            "cacheVariables": {
-                "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
-                "CMAKE_CXX_STANDARD": "26",
-                "CMAKE_CXX_EXTENSIONS": "OFF",
-                "CMAKE_BUILD_TYPE": "RelWithDebInfo",
-                "CMAKE_COMPILE_WARNING_AS_ERROR": "ON",
-                "SANITIZER_FLAGS": "-fsanitize=address -fsanitize=undefined -fno-omit-frame-pointer",
-                "PROJECT_SRC_DIR": "${sourceDir}/src/",
-                "LLVM_LIBRARY_DIR": "/usr/local/opt/llvm/lib/",
-                "CMAKE_RUNTIME_OUTPUT_DIRECTORY": "${sourceDir}/build/"
             }
         }
     ]
