@@ -1,32 +1,37 @@
 # TwoPy
 
-A Python interpreter written in C++26. TwoPy takes Python source code through a full pipeline — lexing, parsing, bytecode compilation, and execution on a stack-based virtual machine.
+A toy Python interpreter written in C++26.
 
-Special thanks to DrkWithT for helping refactor the `match` and `consume` functions in the Parser namespace to use metaprogramming, eliminating verbose `consume(T) || consume(T)` chains for larger conditionals.
+## Usage
+ - Ensure you have CMake 3.20+ and a C++26 supporting compiler.
+ - Enable `helper.sh`.
+ - Do `./helper.sh help` for usage info. Use `./helper.sh build debug-build <your build tool>` to create the binary.
 
 ## Design
 
-Based off a multi-pass compiler design. 
-
-```
-Python Source → Lexer → Tokens → Parser → AST → Compiler → Bytecode → VM → Output
-```
-
-- **Lexer**: Tokenizes Python source code. 
+This is based off typical compiler stages:
+- **Lexer**: Tokenizes Python source code.
 - **Parser**: Builds an AST via recursive descent with Pratt's parsing
 - **Bytecode Compiler**: Compiles the AST into bytecode with constant/name pooling, scope-aware variable access, and jump patching
 - **Stack-Based VM**: Executes bytecode with a global/local variable env with its own stack and instruction pointer.
 
-### Supported Python Features
-
-Currently only got basic arthemetic working for the vm and load/store ops.
-
-The next test will be trying to get fizzbuzz working and fib. 
+## Supported Python Features (around 3.8 - 3.9)
+ - Basic variable store/load, comparisons, arithmetic.
+ - print??
 
 <img width="623" height="108" alt="Screenshot_20260308_202950" src="https://github.com/user-attachments/assets/7cd395f6-c356-4c2b-8e58-f09fda33e2d2" />
 
-# TODO
+## Contributors
 
-For/while loops
+Special thanks to DrkWithT for helping refactor the `match` and `consume` functions in the Parser namespace to use metaprogramming, eliminating verbose `consume(T) || consume(T)` chains for larger conditionals.
 
-List/Dict indexing 
+## TODO
+ - _VM Refactor 1_
+    - New stack representation supporting arbitrary peeking (presized vector with SP, BP)
+    - Stack of call frames for recursion support
+ - Get Fibonacci working as microbenchmark 1
+ - Support nested functions
+ - For loops
+ - Ternary expressions?
+ - Support lists
+ - Support dictionaries

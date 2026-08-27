@@ -36,8 +36,6 @@ namespace TwoPy::Frontend {
 
             int m_error_count {};
 
-            bool match(const token_type& type);
-
             // Might be useful to track the amount of errors
             void debug_syntax_error() {
                 m_error_count++;
