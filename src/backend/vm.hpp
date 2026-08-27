@@ -7,6 +7,7 @@
 #include <vector>
 #include <flat_map>
 #include <string>
+#include <map>
 
 #include "backend/opcode.hpp"
 #include "backend/value.hpp"
@@ -20,11 +21,13 @@
 */
 
 namespace TwoPy::Backend {
+    // ! Don't start on CallFrame until call_function
     struct CallFrame {
         std::size_t caller_bp;
-        std::optional<std::size_t> callee_bp;
+        std::optional<std::size_t> callee_bp; // ! start of func args 
         Instruction* caller_ip;
-        std::size_t caller_chunk_id;
+        std::size_t frame_id;
+        std::map<std::string, Value> vars;
     };
 
     enum class Result : std::uint8_t {
@@ -38,19 +41,19 @@ namespace TwoPy::Backend {
             const ByteCodeProgram& m_prgm {};
             
             std::size_t m_frame_count {};
+
+            std::stack<CallFrame> frames;
             
             std::flat_map<std::string, Value> global_vars {};
-            std::flat_map<std::string, Value> local_vars {};
 
-            // stores runtime consts/values 
-            std::stack<Value> vm_stack {};
+            std::stack<Value> value_stack_ptr {};
             std::vector<Instruction> m_code {};
 
             // Also called program counters 
             std::size_t m_ip {};
 
             // Base Pointer (EBP)
-            Chunk* m_bp {};
+            Chunk* m_curr_bp {};
 
             [[nodiscard]]
             constexpr bool help_compare(std::uint8_t cmp_id, const Value& lhs, const Value& rhs) {
@@ -69,6 +72,8 @@ namespace TwoPy::Backend {
 
             Result run();
     };
+
+   
 }
 
 #endif
