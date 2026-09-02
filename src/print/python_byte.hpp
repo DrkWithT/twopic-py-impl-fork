@@ -20,6 +20,7 @@ namespace BytePrinter {
     inline std::string opcode_to_string(OpCode op) {
         switch (op) {
             case OpCode::RETURN: return "RETURN";
+            case OpCode::RETURN_VALUE: return "RETURN_VALUE";
             case OpCode::ADD: return "ADD";
             case OpCode::SUB: return "SUB";
             case OpCode::MUL: return "MUL";
@@ -34,6 +35,7 @@ namespace BytePrinter {
             case OpCode::BINARY_FLOOR_DIVIDE: return "BINARY_FLOOR_DIVIDE";
             case OpCode::BINARY_ADD: return "BINARY_ADD";
             case OpCode::BINARY_SUB: return "BINARY_SUB";
+            case OpCode::LOAD_SMALL_INT: return "LOAD_SMALL_INT";
             case OpCode::STORE_FAST: return "STORE_FAST";
             case OpCode::STORE_NAME: return "STORE_NAME";
             case OpCode::COMPARE_OP: return "COMPARE_OP";
@@ -61,7 +63,7 @@ namespace BytePrinter {
     }
 
     /* Jump arguments hold the absolute byte offset of their target (see compiler::patch_jump). */
-    inline std::vector<std::size_t> collect_jump_targets(const Chunk& chunk) {
+    inline std::vector<std::size_t> collect_jump_targets(const FunctionChunk& chunk) {
         std::vector<std::size_t> targets;
         for (const auto& instr : chunk.code) {
             if (is_jump(instr.opcode)) {
@@ -100,7 +102,7 @@ namespace BytePrinter {
 
     /* Renders the arg column plus a "(to N)" detail for an absolute jump target. */
     inline std::string jump_argument_string(const Instruction& instr, size_t offset,
-                                            const Chunk& chunk) {
+                                            const FunctionChunk& chunk) {
         const std::size_t target = instr.argument;
         const std::size_t here = offset * 2;
         const std::size_t code_size = chunk.code.size() * 2;
@@ -119,7 +121,7 @@ namespace BytePrinter {
     }
 
     inline std::string instruction_argument_string(const Instruction& instr, size_t offset,
-                                                   const Chunk& chunk) {
+                                                   const FunctionChunk& chunk) {
         switch (instr.opcode) {
             case OpCode::LOAD_CONSTANT:
                 if (instr.argument < chunk.consts_pool.size()) {
@@ -129,8 +131,17 @@ namespace BytePrinter {
                 }
                 return std::format(" {:>3}  <invalid constant index>", instr.argument);
 
+            // Locals are slot-indexed, so their names come from local_vars
+            // (CPython prints these from co_varnames, not co_names).
             case OpCode::STORE_FAST:
             case OpCode::LOAD_FAST:
+                for (const auto& [name, slot] : chunk.local_vars) {
+                    if (slot == instr.argument) {
+                        return std::format(" {:>3}  ({})", instr.argument, name);
+                    }
+                }
+                return std::format(" {:>3}  <invalid local slot>", instr.argument);
+
             case OpCode::LOAD_NAME:
             case OpCode::STORE_NAME:
                 if (instr.argument < chunk.names_pool.size()) {
@@ -161,7 +172,7 @@ namespace BytePrinter {
     }
 
     inline void print_instruction(const Instruction& instr, size_t offset,
-                                  const Chunk& chunk,
+                                  const FunctionChunk& chunk,
                                   const std::vector<std::size_t>& jump_targets = {}) {
         const std::string opname = opcode_to_string(instr.opcode);
         const std::string detail = instruction_argument_string(instr, offset, chunk);
@@ -176,7 +187,7 @@ namespace BytePrinter {
         }
     }
 
-    inline void disassemble_chunk(const Chunk& chunk, const std::string& name = "<chunk>") {
+    inline void disassemble_chunk(const FunctionChunk& chunk, const std::string& name = "<chunk>") {
         std::print("Disassembly of {}:\n", name);
         std::print("Constants: [");
         for (size_t i = 0; i < chunk.consts_pool.size(); ++i) {

@@ -2,6 +2,7 @@
 #define TWOPY_OBJECTS_HPP
 
 #include <string>
+#include <string_view>
 #include <vector>
 #include <memory>
 #include <type_traits>
@@ -22,7 +23,14 @@ namespace TwoPy::Backend {
         // DICT,
         // CLASS,
         FUNCTION,   // callable object
+        NATIVE,     // built-in callable: no chunk, the VM runs it inline
         STRING,
+    };
+
+    /* Built-ins are dispatched on this instead of by name-compare at call time. */
+    enum class NativeId : std::uint8_t {
+        PRINT,
+        RANGE
     };
 
     /* Insprided by Derkt's ObjectBase class which allows for Polymophric virutal representation */
@@ -83,6 +91,36 @@ namespace TwoPy::Backend {
 
             [[nodiscard]] bool is_truthy() const noexcept override {
                 return !m_name.empty();
+            }
+    };
+
+    class NativePyObject : public ObjectBase {
+        private:
+            std::string m_name;
+            NativeId m_id;
+
+        public:
+            explicit NativePyObject(std::string name, NativeId id)
+                : m_name(std::move(name)), m_id(id) {}
+
+            [[nodiscard]] ObjectTag tag() const noexcept override {
+                return ObjectTag::NATIVE;
+            }
+
+            [[nodiscard]] const std::string& name() const noexcept {
+                return m_name;
+            }
+
+            [[nodiscard]] NativeId id() const noexcept {
+                return m_id;
+            }
+
+            [[nodiscard]] std::string stringify() override {
+                return std::format("<built-in function {}>", m_name);
+            }
+
+            [[nodiscard]] bool is_truthy() const noexcept override {
+                return true;
             }
     };
 

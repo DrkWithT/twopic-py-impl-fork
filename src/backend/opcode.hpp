@@ -9,6 +9,8 @@ namespace TwoPy::Backend {
     */
     enum class OpCode : std::uint8_t {
         RETURN,
+        RETURN_VALUE,
+
         ADD,
         SUB,
         MUL,
@@ -25,6 +27,8 @@ namespace TwoPy::Backend {
         BINARY_FLOOR_DIVIDE,
         BINARY_ADD,
         BINARY_SUB,
+        
+        LOAD_SMALL_INT,
 
         STORE_FAST, // Local vars
         STORE_NAME, // Stuff like Classes, Functions, Dicts, Lists, etc etc

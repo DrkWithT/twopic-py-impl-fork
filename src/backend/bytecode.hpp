@@ -14,30 +14,32 @@
 #include "backend/opcode.hpp"
 
 namespace TwoPy::Backend {
-    struct Chunk {
+    struct FunctionChunk {
         std::vector<Instruction> code;
         std::vector<Value> consts_pool;
         std::vector<std::string> names_pool;
         std::size_t byte_offset; // instructions lists
+        std::map<std::string, std::uint8_t> global_vars;
+        std::map<std::string, std::uint8_t> local_vars;
+        std::string name;
     };
 
     struct ByteCodeProgram {
         std::string name;
-        std::vector<std::shared_ptr<Chunk>> chunks;
+        std::vector<std::shared_ptr<FunctionChunk>> chunks;
     };
 
     class compiler {
     private:
         const TwoPy::Frontend::Program& m_program;
-        std::size_t m_scope_depth {};
+        std::size_t m_scope_depth;
 
-        std::map<std::string, std::uint8_t> global_vars;
-        std::map<std::string, std::uint8_t> local_vars;
+        bool m_is_func_args = false;
 
         std::vector<std::size_t> pending_jumps;
         std::vector<std::size_t> truthy_jumps;
 
-        Chunk* m_curr_chunk {};
+        FunctionChunk* m_curr_chunk {};
 
         ByteCodeProgram m_bytecode_program {};     
 
@@ -69,8 +71,8 @@ namespace TwoPy::Backend {
 
             m_curr_chunk->code.push_back({.opcode=OpCode::LOAD_CONSTANT, .argument=none_index});
             m_curr_chunk->byte_offset += 2;
-
-            m_curr_chunk->code.push_back({.opcode=OpCode::RETURN});
+            
+            m_curr_chunk->code.push_back({.opcode= (m_scope_depth > 0) ? OpCode::RETURN_VALUE : OpCode::RETURN});
             m_curr_chunk->byte_offset += 2;
         }
 
@@ -96,6 +98,7 @@ namespace TwoPy::Backend {
 
         void disassemble_operators(const TwoPy::Frontend::OperatorsType& ops);
         void disassemble_literals(const TwoPy::Frontend::Literals& lits);
+        void disassemble_literals_args(const TwoPy::Frontend::Literals& lits);
 
         void disassemble_function_object(const TwoPy::Frontend::FunctionDef& function);
         void disassemble_callexpr_object(const TwoPy::Frontend::CallExpr& callee);
